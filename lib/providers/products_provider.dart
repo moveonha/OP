@@ -1,31 +1,16 @@
-// lib/providers/products_provider.dart
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product.dart';
 
 class ProductsProvider with ChangeNotifier {
-  final List<Product> _items = [
-    Product(
-      id: 'p1',
-      title: '상품1',
-      description: 'test description',
-      price: 15000,
-      imageUrl: 'https://via.placeholder.com/150',
-    ),
-    Product(
-      id: 'p2',
-      title: '상품2',
-      description: '마나를 회복시켜주는 블루 포션입니다.',
-      price: 20000,
-      imageUrl: 'https://via.placeholder.com/150',
-    ),
-    // 더 많은 상품 추가 가능
-  ];
-
-  // 정렬 상태를 저장하는 변수
+  final _supabase = Supabase.instance.client;
+  List<Product> _items = [];
   String _currentSort = '추천순';
+  bool _isLoading = false;
+
+  bool get isLoading => _isLoading;
 
   List<Product> get items {
-    // 현재 정렬 상태에 따라 정렬된 리스트 반환
     List<Product> sortedItems = [..._items];
     
     switch (_currentSort) {
@@ -36,11 +21,10 @@ class ProductsProvider with ChangeNotifier {
         sortedItems.sort((a, b) => a.price.compareTo(b.price));
         break;
       case '최신순':
-        sortedItems.sort((a, b) => b.id.compareTo(a.id)); // ID 기준으로 정렬
+        sortedItems.sort((a, b) => b.id.compareTo(a.id));
         break;
       case '추천순':
       default:
-        // 기본 정렬 순서 유지
         break;
     }
     
@@ -51,6 +35,62 @@ class ProductsProvider with ChangeNotifier {
     return _items.where((item) => item.isFavorite).toList();
   }
 
+  String get currentSortOrder => _currentSort;
+
+  Future<void> fetchProducts() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _supabase
+          .from('products')
+          .select()
+          .order('created_at', ascending: false);
+
+      _items = response.map<Product>((json) => Product(
+        id: json['id'].toString(),
+        title: json['title'],
+        description: json['description'],
+        price: json['price'].toDouble(),
+        imageUrl: json['image_url'],
+        isFavorite: json['is_favorite'] ?? false,
+      )).toList();
+
+    } catch (error) {
+      print('Error fetching products: $error');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addProduct(Product product) async {
+    try {
+      final response = await _supabase.from('products').insert({
+        'title': product.title,
+        'description': product.description,
+        'price': product.price,
+        'image_url': product.imageUrl,
+        'is_favorite': product.isFavorite,
+      }).select();
+
+      if (response.isNotEmpty) {
+        final newProduct = Product(
+          id: response[0]['id'].toString(),
+          title: response[0]['title'],
+          description: response[0]['description'],
+          price: response[0]['price'].toDouble(),
+          imageUrl: response[0]['image_url'],
+          isFavorite: response[0]['is_favorite'] ?? false,
+        );
+        _items.add(newProduct);
+        notifyListeners();
+      }
+    } catch (error) {
+      print('Error adding product: $error');
+    }
+  }
+
   Product findById(String id) {
     return _items.firstWhere(
       (product) => product.id == id,
@@ -58,12 +98,6 @@ class ProductsProvider with ChangeNotifier {
     );
   }
 
-  void addProduct(Product product) {
-    _items.add(product);
-    notifyListeners();
-  }
-
-  // 정렬 방식 변경 메서드
   void setSortOrder(String sortOrder) {
     if (_currentSort != sortOrder) {
       _currentSort = sortOrder;
@@ -71,11 +105,43 @@ class ProductsProvider with ChangeNotifier {
     }
   }
 
-  void toggleFavorite(String productId) {
-    final product = findById(productId);
-    product.toggleFavorite();
-    notifyListeners();
+  Future<void> toggleFavorite(String productId) async {
+    try {
+      final product = findById(productId);
+      final newFavoriteStatus = !product.isFavorite;
+
+      await _supabase
+          .from('products')
+          .update({'is_favorite': newFavoriteStatus})
+          .eq('id', productId);
+
+      product.toggleFavorite();
+      notifyListeners();
+    } catch (error) {
+      print('Error toggling favorite: $error');
+    }
   }
-  // 현재 정렬 방식 getter
-  String get currentSortOrder => _currentSort;
+
+  Future<void> searchProducts(String query) async {
+    try {
+      final response = await _supabase
+          .from('products')
+          .select()
+          .ilike('title', '%$query%')
+          .order('created_at', ascending: false);
+
+      _items = response.map<Product>((json) => Product(
+        id: json['id'].toString(),
+        title: json['title'],
+        description: json['description'],
+        price: json['price'].toDouble(),
+        imageUrl: json['image_url'],
+        isFavorite: json['is_favorite'] ?? false,
+      )).toList();
+
+      notifyListeners();
+    } catch (error) {
+      print('Error searching products: $error');
+    }
+  }
 }

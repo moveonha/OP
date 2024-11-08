@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import './screens/cart_screen.dart';
 import './screens/product_detail_screen.dart';
 import './screens/home_screen.dart';
@@ -7,7 +8,14 @@ import 'package:provider/provider.dart';
 import './providers/products_provider.dart';
 import './providers/cart_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await Supabase.initialize(
+    url: 'YOUR_SUPABASE_PROJECT_URL',
+    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+  );
+  
   runApp(const MyApp());
 }
 
