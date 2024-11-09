@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import './product_list_screen.dart';
 import './cart_screen.dart';
 import './profile_screen.dart';
+import './taste_test_screen.dart';  // 추가
 import '../widgets/search_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,6 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Orange Potion'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.psychology),  // 취향 테스트 아이콘
+            onPressed: () {
+                      Navigator.of(context).pushNamed('/taste-test'); // 수정된 부분
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {

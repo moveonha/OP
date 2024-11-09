@@ -4,6 +4,7 @@ import './screens/cart_screen.dart';
 import './screens/product_detail_screen.dart';
 import './screens/home_screen.dart';
 import './screens/profile_screen.dart';
+import './screens/taste_test_screen.dart';  // 추가
 import 'package:provider/provider.dart';
 import './providers/products_provider.dart';
 import './providers/cart_provider.dart';
@@ -50,6 +51,7 @@ class MyApp extends StatelessWidget {
           '/product-detail': (_) => const ProductDetailScreen(),
           '/cart': (_) => const CartScreen(),
           '/profile': (_) => ProfileScreen(),
+          '/taste-test': (_) => const TasteTestScreen(),  // 추가
         },
       ),
     );
