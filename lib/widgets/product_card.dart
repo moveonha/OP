@@ -18,7 +18,7 @@ class ProductCard extends StatefulWidget {  // StatelessWidget에서 StatefulWid
     required this.price,
     required this.imageUrl,
     required this.isFavorite,
-    required this.onFavoriteToggle,
+    required this.onFavoriteToggle, double? similarity,
   }) : super(key: key);
 
   @override

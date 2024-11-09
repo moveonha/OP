@@ -1,4 +1,3 @@
-// lib/models/user_preference.dart
 import 'package:flutter/foundation.dart';
 
 class UserPreference with ChangeNotifier {
@@ -41,11 +40,12 @@ class UserPreference with ChangeNotifier {
     return UserPreference(
       userId: userId,
       preferences: {
-        'sweet': 0.0,    // 단맛
-        'bitter': 0.0,   // 쓴맛
-        'sour': 0.0,     // 신맛
-        'body': 0.0,     // 바디감
-        'alcohol': 0.0,  // 도수
+        'sweet': 0.0,       // 단맛
+        'sour': 0.0,        // 신맛
+        'bitter': 0.0,      // 쓴맛
+        'turbidity': 0.0,   // 탁도
+        'fragrance': 0.0,   // 향
+        'crisp': 0.0,       // 청량함
       },
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),

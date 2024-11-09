@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-class HexagonStatsWidget extends StatelessWidget {
+class HexagonStatsWidget extends StatefulWidget {
   final Map<String, double> characteristics;
   final double size;
 
@@ -13,13 +13,52 @@ class HexagonStatsWidget extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<HexagonStatsWidget> createState() => _HexagonStatsWidgetState();
+}
+
+class _HexagonStatsWidgetState extends State<HexagonStatsWidget> 
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size, size),
-      painter: HexagonStatsPainter(
-        characteristics: characteristics,
-        color: Theme.of(context).primaryColor,
-      ),
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return CustomPaint(
+          size: Size(widget.size, widget.size),
+          painter: HexagonStatsPainter(
+            characteristics: widget.characteristics,
+            color: Theme.of(context).primaryColor,
+            progress: _animation.value,
+          ),
+        );
+      },
     );
   }
 }
@@ -27,11 +66,13 @@ class HexagonStatsWidget extends StatelessWidget {
 class HexagonStatsPainter extends CustomPainter {
   final Map<String, double> characteristics;
   final Color color;
+  final double progress;
   final List<String> labels = ['단맛', '신맛', '쓴맛', '탁도', '향', '청량함'];
 
   HexagonStatsPainter({
     required this.characteristics,
     required this.color,
+    required this.progress,
   });
 
   @override
@@ -43,7 +84,7 @@ class HexagonStatsPainter extends CustomPainter {
     _drawBackground(canvas, center, radius);
     
     // 데이터 육각형 그리기
-    _drawDataHexagon(canvas, center, radius);
+    _drawDataHexagon(canvas, center, radius * progress);
     
     // 라벨 그리기
     _drawLabels(canvas, center, radius);
@@ -51,11 +92,11 @@ class HexagonStatsPainter extends CustomPainter {
 
   void _drawBackground(Canvas canvas, Offset center, double radius) {
     final paint = Paint()
-      ..color = Colors.grey[300]!
+      ..color = Colors.grey[200]!
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
-    // 5개의 동심 육각형 그리기 (0-5 척도)
+    // 5개의 동심 육각형 그리기
     for (int i = 1; i <= 5; i++) {
       final path = Path();
       for (int j = 0; j < 6; j++) {
@@ -84,17 +125,17 @@ class HexagonStatsPainter extends CustomPainter {
 
     final path = Path();
     final values = [
-      characteristics['sweet'] ?? 0,      // 단맛
-      characteristics['sour'] ?? 0,       // 신맛
-      characteristics['bitter'] ?? 0,      // 쓴맛
-      characteristics['turbidity'] ?? 0,   // 탁도
-      characteristics['fragrance'] ?? 0,   // 향
-      characteristics['crisp'] ?? 0,       // 청량함
+      characteristics['sweet'] ?? 0,
+      characteristics['sour'] ?? 0,
+      characteristics['bitter'] ?? 0,
+      characteristics['turbidity'] ?? 0,
+      characteristics['fragrance'] ?? 0,
+      characteristics['crisp'] ?? 0,
     ];
 
     for (int i = 0; i < 6; i++) {
       final angle = (i * 60) * math.pi / 180;
-      final value = values[i] / 5.0;  // 0-5 척도로 정규화
+      final value = values[i] / 5.0;
       final point = Offset(
         center.dx + radius * value * math.cos(angle),
         center.dy + radius * value * math.sin(angle),
@@ -151,5 +192,7 @@ class HexagonStatsPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant HexagonStatsPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
 }

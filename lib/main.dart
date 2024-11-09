@@ -10,6 +10,7 @@ import './providers/products_provider.dart';
 import './providers/cart_provider.dart';
 import './providers/auth_provider.dart';
 import './providers/user_preference_provider.dart';
+import './providers/recommendation_provider.dart';  // 추가
 import './config/supabase_config.dart';
 
 Future<void> main() async {
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => ProductsProvider(),
+          create: (_) => ProductsProvider()..fetchProducts(),  // 초기 데이터 로드
         ),
         ChangeNotifierProvider(
           create: (_) => CartProvider(),
@@ -39,6 +40,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => UserPreferenceProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => RecommendationProvider(),  // 추가
+        ),
       ],
       child: MaterialApp(
         title: 'Orange Potion',
@@ -48,11 +52,25 @@ class MyApp extends StatelessWidget {
             primary: Colors.orange,
             secondary: Colors.orangeAccent,
           ),
+          scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            iconTheme: IconThemeData(color: Colors.black),
+            titleTextStyle: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            selectedItemColor: Colors.orange,
+            unselectedItemColor: Colors.grey,
+          ),
           useMaterial3: true,
         ),
         home: const HomeScreen(),
         routes: {
-          '/product-detail': (_) => const ProductDetailScreen(),
           '/cart': (_) => const CartScreen(),
           '/profile': (_) => const ProfileScreen(),
           '/taste-test': (_) => const TasteTestScreen(),
@@ -62,10 +80,7 @@ class MyApp extends StatelessWidget {
             final productId = settings.arguments as String;
             return MaterialPageRoute(
               builder: (context) => ProductDetailScreen(),
-              settings: RouteSettings(
-                name: '/product-detail',
-                arguments: productId,
-              ),
+              settings: settings,
             );
           }
           return null;
