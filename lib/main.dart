@@ -8,16 +8,18 @@ import 'package:provider/provider.dart';
 import './providers/products_provider.dart';
 import './providers/cart_provider.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Supabase.initialize(
-    url: 'YOUR_SUPABASE_PROJECT_URL',
-    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+    url: 'https://kjmhbsqkaikypiicxoll.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqbWhic3FrYWlreXBpaWN4b2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzEwNjE3NzQsImV4cCI6MjA0NjYzNzc3NH0.jiYIisz2ytmfLBF7X9JkXijjbhhtPuTZ0YPyYqW6Wew',
   );
   
   runApp(const MyApp());
 }
+
+final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
