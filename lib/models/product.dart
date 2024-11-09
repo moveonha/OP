@@ -27,17 +27,24 @@ class Product with ChangeNotifier {
   }
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
-      id: json['id'].toString(),
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
-      imageUrl: json['image_url'] ?? '',
-      characteristics: json['characteristics'] != null 
-          ? Map<String, double>.from(json['characteristics'])
-          : {},
-      isFavorite: json['is_favorite'] ?? false,
-    );
+      return Product(
+        id: json['id'].toString(),
+        title: json['title'] ?? '',
+        description: json['description'] ?? '',
+        price: (json['price'] ?? 0).toDouble(),
+        imageUrl: json['image_url'] ?? '',
+        characteristics: json['characteristics'] != null 
+            ? Map<String, double>.from({
+                'sweet': (json['characteristics']['sweet'] ?? 0).toDouble(),
+                'sour': (json['characteristics']['sour'] ?? 0).toDouble(),
+                'bitter': (json['characteristics']['bitter'] ?? 0).toDouble(),
+                'turbidity': (json['characteristics']['turbidity'] ?? 0).toDouble(),
+                'fragrance': (json['characteristics']['fragrance'] ?? 0).toDouble(),
+                'crisp': (json['characteristics']['crisp'] ?? 0).toDouble(),
+              })
+            : {},
+        isFavorite: json['is_favorite'] ?? false,
+      );
   }
 
   Map<String, dynamic> toJson() {
