@@ -42,7 +42,7 @@ class RecommendationProvider with ChangeNotifier {
         var newProduct = Product.fromJson(product);
         
         // 사용자 취향과 제품 특성 간의 유사도 계산
-        if (userPrefs != null && userPrefs['preferences'] != null) {
+        if (userPrefs['preferences'] != null) {
           final preferences = Map<String, double>.from(userPrefs['preferences']);
           double similarity = calculateSimilarity(preferences, newProduct.characteristics);
           newProduct = Product(

@@ -1,3 +1,4 @@
+// lib/providers/products_provider.dart
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product.dart';
@@ -7,8 +8,10 @@ class ProductsProvider with ChangeNotifier {
   List<Product> _items = [];
   String _currentSort = '추천순';
   bool _isLoading = false;
+  String? _error;
 
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
   List<Product> get items {
     List<Product> sortedItems = [..._items];
@@ -38,26 +41,34 @@ class ProductsProvider with ChangeNotifier {
   String get currentSortOrder => _currentSort;
 
   Future<void> fetchProducts() async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
       final response = await _supabase
           .from('products')
-          .select('*, characteristics')
+          .select()
           .order('created_at', ascending: false);
 
-      _items = response.map<Product>((json) => Product(
+      print('Fetched response: $response'); // 디버깅용
+
+      _items = (response as List).map<Product>((json) => Product(
         id: json['id'].toString(),
-        title: json['title'],
-        description: json['description'],
-        price: json['price'].toDouble(),
-        imageUrl: json['image_url'],
-        characteristics: Map<String, double>.from(json['characteristics'] ?? {}),
+        title: json['title'] ?? '',
+        description: json['description'] ?? '',
+        price: (json['price'] ?? 0).toDouble(),
+        imageUrl: json['image_url'] ?? '',
+        characteristics: json['characteristics'] != null 
+            ? Map<String, double>.from(json['characteristics'])
+            : {},
         isFavorite: json['is_favorite'] ?? false,
       )).toList();
 
+      print('Converted to products: ${_items.length}'); // 디버깅용
+
     } catch (error) {
+      _error = '상품을 불러오는데 실패했습니다: $error';
       print('Error fetching products: $error');
     } finally {
       _isLoading = false;
@@ -77,12 +88,21 @@ class ProductsProvider with ChangeNotifier {
       }).select();
 
       if (response.isNotEmpty) {
-        final newProduct = Product.fromJson(response[0]);
+        final newProduct = Product(
+          id: response[0]['id'].toString(),
+          title: response[0]['title'],
+          description: response[0]['description'],
+          price: response[0]['price'].toDouble(),
+          imageUrl: response[0]['image_url'],
+          characteristics: Map<String, double>.from(response[0]['characteristics'] ?? {}),
+          isFavorite: response[0]['is_favorite'] ?? false,
+        );
         _items.add(newProduct);
         notifyListeners();
       }
     } catch (error) {
       print('Error adding product: $error');
+      _error = '상품 추가에 실패했습니다: $error';
     }
   }
 
@@ -114,21 +134,39 @@ class ProductsProvider with ChangeNotifier {
       notifyListeners();
     } catch (error) {
       print('Error toggling favorite: $error');
+      _error = '즐겨찾기 설정에 실패했습니다: $error';
     }
   }
 
   Future<void> searchProducts(String query) async {
     try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
       final response = await _supabase
           .from('products')
-          .select('*, characteristics')
+          .select()
           .ilike('title', '%$query%')
           .order('created_at', ascending: false);
 
-      _items = response.map<Product>((json) => Product.fromJson(json)).toList();
+      _items = (response as List).map<Product>((json) => Product(
+        id: json['id'].toString(),
+        title: json['title'] ?? '',
+        description: json['description'] ?? '',
+        price: (json['price'] ?? 0).toDouble(),
+        imageUrl: json['image_url'] ?? '',
+        characteristics: Map<String, double>.from(json['characteristics'] ?? {}),
+        isFavorite: json['is_favorite'] ?? false,
+      )).toList();
+
       notifyListeners();
     } catch (error) {
       print('Error searching products: $error');
+      _error = '검색에 실패했습니다: $error';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

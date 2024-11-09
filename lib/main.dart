@@ -1,3 +1,4 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import './screens/cart_screen.dart';
 import './screens/product_detail_screen.dart';
@@ -39,25 +40,36 @@ class MyApp extends StatelessWidget {
           create: (_) => UserPreferenceProvider(),
         ),
       ],
-      child: Consumer<AuthProvider>(
-        builder: (ctx, auth, _) => MaterialApp(
-          title: 'Orange Potion',
-          theme: ThemeData(
-            primarySwatch: Colors.orange,
-            colorScheme: const ColorScheme.light(
-              primary: Colors.orange,
-              secondary: Colors.orangeAccent,
-            ),
-            useMaterial3: true,
+      child: MaterialApp(
+        title: 'Orange Potion',
+        theme: ThemeData(
+          primarySwatch: Colors.orange,
+          colorScheme: const ColorScheme.light(
+            primary: Colors.orange,
+            secondary: Colors.orangeAccent,
           ),
-          home: const HomeScreen(),
-          routes: {
-            '/product-detail': (_) => const ProductDetailScreen(),
-            '/cart': (_) => const CartScreen(),
-            '/profile': (_) => const ProfileScreen(),
-            '/taste-test': (_) => const TasteTestScreen(),
-          },
+          useMaterial3: true,
         ),
+        home: const HomeScreen(),
+        routes: {
+          '/product-detail': (_) => const ProductDetailScreen(),
+          '/cart': (_) => const CartScreen(),
+          '/profile': (_) => const ProfileScreen(),
+          '/taste-test': (_) => const TasteTestScreen(),
+        },
+        onGenerateRoute: (settings) {
+          if (settings.name == '/product-detail') {
+            final productId = settings.arguments as String;
+            return MaterialPageRoute(
+              builder: (context) => ProductDetailScreen(),
+              settings: RouteSettings(
+                name: '/product-detail',
+                arguments: productId,
+              ),
+            );
+          }
+          return null;
+        },
       ),
     );
   }
