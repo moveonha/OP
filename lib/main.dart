@@ -1,5 +1,6 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:orange_potion_2/screens/login_screen.dart';
 import './screens/cart_screen.dart';
 import './screens/product_detail_screen.dart';
 import './screens/home_screen.dart';
@@ -10,7 +11,7 @@ import './providers/products_provider.dart';
 import './providers/cart_provider.dart';
 import './providers/auth_provider.dart';
 import './providers/user_preference_provider.dart';
-import './providers/recommendation_provider.dart';  // 추가
+import './providers/recommendation_provider.dart';
 import './config/supabase_config.dart';
 
 Future<void> main() async {
@@ -29,13 +30,13 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => ProductsProvider()..fetchProducts(),  // 초기 데이터 로드
+          create: (_) => AuthProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ProductsProvider()..fetchProducts(),
         ),
         ChangeNotifierProvider(
           create: (_) => CartProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(),
         ),
         ChangeNotifierProvider(
           create: (_) => UserPreferenceProvider(),
@@ -71,6 +72,8 @@ class MyApp extends StatelessWidget {
         ),
         home: const HomeScreen(),
         routes: {
+          '/login': (context) => const LoginScreen(),
+          '/product-detail': (_) => const ProductDetailScreen(),
           '/cart': (_) => const CartScreen(),
           '/profile': (_) => const ProfileScreen(),
           '/taste-test': (_) => const TasteTestScreen(),

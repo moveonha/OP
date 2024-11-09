@@ -1,11 +1,12 @@
-// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:orange_potion_2/config/supabase_config.dart';
 import 'package:provider/provider.dart';
 import './product_list_screen.dart';
 import './cart_screen.dart';
 import './profile_screen.dart';
 import '../widgets/search_bar.dart';
 import '../providers/products_provider.dart';
+import '../providers/user_preference_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,9 +27,23 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // 초기 데이터 로드
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductsProvider>(context, listen: false).fetchProducts();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final userPrefProvider = Provider.of<UserPreferenceProvider>(context, listen: false);
+      final productsProvider = Provider.of<ProductsProvider>(context, listen: false);
+      
+      await userPrefProvider.loadPreferences();
+      await productsProvider.fetchProducts();
+
+      // 로그인 상태이고 취향 데이터가 없으면 취향 테스트로 이동
+      if (mounted && 
+          supabase.auth.currentUser != null && 
+          !userPrefProvider.hasTastePreference) {
+        Navigator.of(context).pushNamed('/taste-test');
+      }
     });
   }
 
@@ -36,18 +51,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Orange Potion'),
+        title: const Text(
+          'Orange Potion',
+          style: TextStyle(color: Colors.black),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.psychology),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/taste-test');
+            icon: const Icon(Icons.psychology, color: Colors.black),
+            onPressed: () async {
+              await Navigator.of(context).pushNamed('/taste-test');
+              if (mounted) {
+                Provider.of<ProductsProvider>(context, listen: false)
+                    .fetchProducts();
+              }
             },
           ),
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.search, color: Colors.black),
             onPressed: () {
               showSearch(
                 context: context,
@@ -57,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: IndexedStack(  // IndexedStack으로 변경하여 상태 유지
+      body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
       ),

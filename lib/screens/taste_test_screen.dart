@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_preference_provider.dart';
+import '../providers/products_provider.dart';
 
 class TasteTestScreen extends StatefulWidget {
   const TasteTestScreen({Key? key}) : super(key: key);
@@ -37,113 +38,189 @@ class _TasteTestScreenState extends State<TasteTestScreen> {
      'description': '깔끔하고 상쾌한 맛의 정도를 선택해주세요.'},
   ];
 
-  String get currentKey => _questions[_currentIndex]['key'] ?? '';
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingPreferences();
+  }
+
+  Future<void> _loadExistingPreferences() async {
+    final provider = context.read<UserPreferenceProvider>();
+    if (provider.preference != null) {
+      setState(() {
+        _preferences.addAll(provider.preference!.preferences);
+      });
+    }
+  }
+
+  Future<void> _saveTasteTest() async {
+    if (!mounted) return;
+
+    try {
+      final provider = Provider.of<UserPreferenceProvider>(context, listen: false);
+      
+      // 로딩 표시
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      await provider.savePreferences(
+        sweet: _preferences['sweet']!,
+        sour: _preferences['sour']!,
+        bitter: _preferences['bitter']!,
+        turbidity: _preferences['turbidity']!,
+        fragrance: _preferences['fragrance']!,
+        crisp: _preferences['crisp']!,
+      );
+
+      if (!mounted) return;
+
+      // 로딩 다이얼로그 닫기
+      Navigator.of(context).pop();
+
+      // 성공 메시지 표시 후 홈 화면으로 이동
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('취향 테스트가 완료되었습니다!')),
+      );
+
+      // 홈 화면으로 이동
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/',
+        (route) => false,
+      );
+
+      // 상품 목록 새로고침
+      if (mounted) {
+        Provider.of<ProductsProvider>(context, listen: false).fetchProducts();
+      }
+
+    } catch (error) {
+      if (!mounted) return;
+
+      // 로딩 다이얼로그 닫기
+      Navigator.of(context).pop();
+
+      // 에러 메시지 표시
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('오류가 발생했습니다: $error')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('취향 테스트'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _questions[_currentIndex]['question']!,
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _questions[_currentIndex]['description']!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
+    return WillPopScope(
+      onWillPop: () async {
+        final shouldPop = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('취향 테스트 종료'),
+            content: const Text('취향 테스트를 종료하시겠습니까?\n입력하신 데이터는 저장되지 않습니다.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('계속하기'),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('약함'),
-                Expanded(
-                  child: Slider(
-                    value: _preferences[currentKey] ?? 0.0,
-                    min: 0,
-                    max: 5,
-                    divisions: 5,
-                    label: _preferences[currentKey]?.toString() ?? '0.0',
-                    onChanged: (value) {
-                      setState(() {
-                        _preferences[currentKey] = value;
-                      });
-                    },
-                  ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('종료'),
+              ),
+            ],
+          ),
+        );
+        return shouldPop ?? false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('취향 테스트'),
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                _questions[_currentIndex]['question']!,
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _questions[_currentIndex]['description']!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
                 ),
-                const Text('강함'),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (_currentIndex > 0)
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _currentIndex--;
-                      });
-                    },
-                    child: const Text('이전'),
-                  )
-                else
-                  const SizedBox(width: 80),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_currentIndex < _questions.length - 1) {
-                      setState(() {
-                        _currentIndex++;
-                      });
-                    } else {
-                      try {
-                        final provider = context.read<UserPreferenceProvider>();
-                        await provider.savePreferences(
-                          sweet: _preferences['sweet']!,
-                          sour: _preferences['sour']!,
-                          bitter: _preferences['bitter']!,
-                          turbidity: _preferences['turbidity']!,
-                          fragrance: _preferences['fragrance']!,
-                          crisp: _preferences['crisp']!,
-                        );
-
-                        if (!mounted) return;
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('취향 테스트가 완료되었습니다!')),
-                        );
-                      } catch (error) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('오류가 발생했습니다: $error')),
-                        );
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('약함'),
+                  Expanded(
+                    child: Slider(
+                      value: _preferences[_questions[_currentIndex]['key']]!,
+                      min: 0,
+                      max: 5,
+                      divisions: 5,
+                      label: _preferences[_questions[_currentIndex]['key']]!
+                          .toString(),
+                      onChanged: (value) {
+                        setState(() {
+                          _preferences[_questions[_currentIndex]['key']!] = value;
+                        });
+                      },
+                    ),
+                  ),
+                  const Text('강함'),
+                ],
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (_currentIndex > 0)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _currentIndex--;
+                        });
+                      },
+                      child: const Text('이전'),
+                    )
+                  else
+                    const SizedBox(width: 80),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_currentIndex < _questions.length - 1) {
+                        setState(() {
+                          _currentIndex++;
+                        });
+                      } else {
+                        await _saveTasteTest();
                       }
-                    }
-                  },
-                  child: Text(_currentIndex < _questions.length - 1 ? '다음' : '완료'),
-                ),
-                if (_currentIndex < _questions.length - 1)
-                  const SizedBox(width: 80)
-                else
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
                     },
-                    child: const Text('건너뛰기'),
+                    child: Text(_currentIndex < _questions.length - 1 ? '다음' : '완료'),
                   ),
-              ],
-            ),
-          ],
+                  if (_currentIndex < _questions.length - 1)
+                    const SizedBox(width: 80)
+                  else
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('건너뛰기'),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

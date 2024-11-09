@@ -10,6 +10,7 @@ class UserPreferenceProvider with ChangeNotifier {
   UserPreference? get preference => _preference;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get hasTastePreference => _preference?.preferences.isNotEmpty ?? false;
 
   Future<void> savePreferences({
     required double sweet,
@@ -27,24 +28,24 @@ class UserPreferenceProvider with ChangeNotifier {
       if (userId == null) throw Exception('사용자가 로그인되어 있지 않습니다.');
 
       final preferences = {
-        'sweet': sweet,           // 단맛
-        'sour': sour,            // 신맛
-        'bitter': bitter,         // 쓴맛
-        'turbidity': turbidity,   // 탁도
-        'fragrance': fragrance,   // 향
-        'crisp': crisp,          // 청량함
+        'sweet': sweet,
+        'sour': sour,
+        'bitter': bitter,
+        'turbidity': turbidity,
+        'fragrance': fragrance,
+        'crisp': crisp,
       };
 
-      final data = {
-        'preferences': preferences,
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-
+      // Supabase에 데이터 저장
       await supabase
           .from('users')
-          .update(data)
+          .update({
+            'preferences': preferences,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
           .eq('id', userId);
 
+      // 로컬 상태 업데이트
       _preference = UserPreference(
         userId: userId,
         preferences: preferences,
@@ -67,26 +68,18 @@ class UserPreferenceProvider with ChangeNotifier {
       notifyListeners();
 
       final userId = supabase.auth.currentUser?.id;
-      if (userId == null) throw Exception('사용자가 로그인되어 있지 않습니다.');
+      if (userId == null) {
+        _preference = null;
+        return;
+      }
 
       final response = await supabase
           .from('users')
-          .select()
+          .select('*, preferences')
           .eq('id', userId)
           .single();
 
-      if (response == null) {
-        // 사용자 데이터가 없으면 기본값으로 생성
-        _preference = UserPreference.createDefault(userId);
-        await savePreferences(
-          sweet: 0,
-          sour: 0,
-          bitter: 0,
-          turbidity: 0,
-          fragrance: 0,
-          crisp: 0,
-        );
-      } else {
+      if (response != null) {
         _preference = UserPreference.fromJson(response);
       }
       

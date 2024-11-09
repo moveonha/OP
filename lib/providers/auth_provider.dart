@@ -7,10 +7,12 @@ class AuthProvider with ChangeNotifier {
   app_user.User? _user;
   bool _isLoading = false;
   String? _error;
+  bool _needsTasteTest = false;
 
   app_user.User? get user => _user;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get needsTasteTest => _needsTasteTest;
 
   bool get isAuthenticated => _user != null;
 
@@ -28,11 +30,18 @@ class AuthProvider with ChangeNotifier {
 
       final response = await supabase
           .from('users')
-          .select()
+          .select('*, preferences')
           .eq('id', userId)
           .single();
 
       _user = app_user.User.fromJson(response);
+      
+      // 취향 테스트 필요 여부 확인
+      final preferences = response['preferences'];
+      _needsTasteTest = preferences == null || 
+                       (preferences as Map).isEmpty ||
+                       !_hasValidPreferences(preferences);
+      
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -40,6 +49,17 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  bool _hasValidPreferences(Map<dynamic, dynamic> preferences) {
+    final requiredFields = [
+      'sweet', 'sour', 'bitter', 'turbidity', 'fragrance', 'crisp'
+    ];
+    return requiredFields.every((field) => 
+      preferences.containsKey(field) && 
+      preferences[field] != null && 
+      preferences[field] is num
+    );
   }
 
   Future<void> signInWithEmail(String email, String password) async {
@@ -83,13 +103,41 @@ class AuthProvider with ChangeNotifier {
           'name': name,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
+          'preferences': null, // 초기 취향 데이터는 null로 설정
         });
 
         await _loadUserData(response.user!.id);
+        _needsTasteTest = true; // 새 사용자는 취향 테스트 필요
       }
     } catch (e) {
       _error = '회원가입에 실패했습니다: ${e.toString()}';
       _user = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updatePreferences(Map<String, double> preferences) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final userId = _user?.id;
+      if (userId == null) throw Exception('사용자가 로그인되어 있지 않습니다.');
+
+      await supabase
+          .from('users')
+          .update({
+            'preferences': preferences,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', userId);
+
+      await _loadUserData(userId);
+      _needsTasteTest = false; // 취향 테스트 완료
+    } catch (e) {
+      _error = '취향 데이터 업데이트에 실패했습니다: ${e.toString()}';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -101,6 +149,7 @@ class AuthProvider with ChangeNotifier {
       await supabase.auth.signOut();
       _user = null;
       _error = null;
+      _needsTasteTest = false;
     } catch (e) {
       _error = '로그아웃에 실패했습니다: ${e.toString()}';
     } finally {
@@ -112,7 +161,6 @@ class AuthProvider with ChangeNotifier {
     String? name,
     int? age,
     String? gender,
-    Map<String, dynamic>? preferences,
   }) async {
     try {
       _isLoading = true;
@@ -126,7 +174,6 @@ class AuthProvider with ChangeNotifier {
         if (name != null) 'name': name,
         if (age != null) 'age': age,
         if (gender != null) 'gender': gender,
-        if (preferences != null) 'preferences': preferences,
       };
 
       await supabase
