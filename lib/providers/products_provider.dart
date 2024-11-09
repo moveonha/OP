@@ -44,7 +44,7 @@ class ProductsProvider with ChangeNotifier {
     try {
       final response = await _supabase
           .from('products')
-          .select()
+          .select('*, characteristics')
           .order('created_at', ascending: false);
 
       _items = response.map<Product>((json) => Product(
@@ -53,6 +53,7 @@ class ProductsProvider with ChangeNotifier {
         description: json['description'],
         price: json['price'].toDouble(),
         imageUrl: json['image_url'],
+        characteristics: Map<String, double>.from(json['characteristics'] ?? {}),
         isFavorite: json['is_favorite'] ?? false,
       )).toList();
 
@@ -71,18 +72,12 @@ class ProductsProvider with ChangeNotifier {
         'description': product.description,
         'price': product.price,
         'image_url': product.imageUrl,
+        'characteristics': product.characteristics,
         'is_favorite': product.isFavorite,
       }).select();
 
       if (response.isNotEmpty) {
-        final newProduct = Product(
-          id: response[0]['id'].toString(),
-          title: response[0]['title'],
-          description: response[0]['description'],
-          price: response[0]['price'].toDouble(),
-          imageUrl: response[0]['image_url'],
-          isFavorite: response[0]['is_favorite'] ?? false,
-        );
+        final newProduct = Product.fromJson(response[0]);
         _items.add(newProduct);
         notifyListeners();
       }
@@ -126,19 +121,11 @@ class ProductsProvider with ChangeNotifier {
     try {
       final response = await _supabase
           .from('products')
-          .select()
+          .select('*, characteristics')
           .ilike('title', '%$query%')
           .order('created_at', ascending: false);
 
-      _items = response.map<Product>((json) => Product(
-        id: json['id'].toString(),
-        title: json['title'],
-        description: json['description'],
-        price: json['price'].toDouble(),
-        imageUrl: json['image_url'],
-        isFavorite: json['is_favorite'] ?? false,
-      )).toList();
-
+      _items = response.map<Product>((json) => Product.fromJson(json)).toList();
       notifyListeners();
     } catch (error) {
       print('Error searching products: $error');

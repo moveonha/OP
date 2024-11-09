@@ -1,4 +1,3 @@
-// lib/models/product.dart
 import 'package:flutter/foundation.dart';
 
 class Product with ChangeNotifier {
@@ -29,40 +28,27 @@ class Product with ChangeNotifier {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'] ?? '',
-      title: json['name'] ?? '',
+      id: json['id'].toString(),
+      title: json['title'] ?? '',
       description: json['description'] ?? '',
       price: (json['price'] ?? 0).toDouble(),
-      imageUrl: json['image'] ?? '',  // 단일 이미지 URL로 유지
-      characteristics: json['product_labels']?[0]?['characteristics'] != null
-          ? Map<String, double>.from(json['product_labels'][0]['characteristics'])
+      imageUrl: json['image_url'] ?? '',
+      characteristics: json['characteristics'] != null 
+          ? Map<String, double>.from(json['characteristics'])
           : {},
-      isFavorite: false,
-    );
-  }
-
-  Product copyWithSimilarity(double newSimilarity) {
-    return Product(
-      id: id,
-      title: title,
-      description: description,
-      price: price,
-      imageUrl: imageUrl,
-      characteristics: characteristics,
-      similarity: newSimilarity,
-      isFavorite: isFavorite,
+      isFavorite: json['is_favorite'] ?? false,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': title,
+      'title': title,
       'description': description,
       'price': price,
-      'image': imageUrl,
+      'image_url': imageUrl,
       'characteristics': characteristics,
-      'isFavorite': isFavorite,
+      'is_favorite': isFavorite,
     };
   }
 }

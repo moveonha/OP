@@ -1,38 +1,55 @@
 // lib/models/user.dart
-class User {
+import 'package:flutter/foundation.dart';
+
+class User with ChangeNotifier {
   final String id;
-  final String name;
   final String email;
-  final String phoneNumber;
-  final String address;
+  String? name;
+  int? age;
+  String? gender;
+  Map<String, dynamic> preferences;
+  DateTime createdAt;
+  DateTime updatedAt;
 
   User({
     required this.id,
-    required this.name,
     required this.email,
-    required this.phoneNumber,
-    required this.address,
+    this.name,
+    this.age,
+    this.gender,
+    required this.preferences,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
-  // JSON 변환을 위한 팩토리 생성자
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      phoneNumber: json['phoneNumber'] as String,
-      address: json['address'] as String,
+      id: json['id'],
+      email: json['email'],
+      name: json['name'],
+      age: json['age'],
+      gender: json['gender'],
+      preferences: json['preferences'] ?? {},
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
     );
   }
 
-  // JSON으로 변환하는 메서드
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
       'email': email,
-      'phoneNumber': phoneNumber,
-      'address': address,
+      'name': name,
+      'age': age,
+      'gender': gender,
+      'preferences': preferences,
+      'updated_at': updatedAt.toIso8601String(),
     };
+  }
+
+  void updatePreferences(Map<String, dynamic> newPreferences) {
+    preferences = newPreferences;
+    updatedAt = DateTime.now();
+    notifyListeners();
   }
 }

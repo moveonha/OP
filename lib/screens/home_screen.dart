@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import './product_list_screen.dart';
 import './cart_screen.dart';
 import './profile_screen.dart';
-import './taste_test_screen.dart';  // 추가
 import '../widgets/search_bar.dart';
 
 class HomeScreen extends StatefulWidget {

@@ -2,11 +2,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/recommendation_provider.dart';
-import '../providers/products_provider.dart';  // 추가
+import '../providers/products_provider.dart';
 import '../widgets/product_card.dart';
 
-class ProductRecommendation extends StatelessWidget {
+class ProductRecommendation extends StatefulWidget {
   const ProductRecommendation({Key? key}) : super(key: key);
+
+  @override
+  State<ProductRecommendation> createState() => _ProductRecommendationState();
+}
+
+class _ProductRecommendationState extends State<ProductRecommendation> {
+  @override
+  void initState() {
+    super.initState();
+    // 컴포넌트가 마운트될 때 추천 상품 데이터 로드
+    Future.microtask(() =>
+      context.read<RecommendationProvider>().fetchRecommendedProducts()
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +73,6 @@ class ProductRecommendation extends StatelessWidget {
                         imageUrl: product.imageUrl,
                         isFavorite: product.isFavorite,
                         onFavoriteToggle: () {
-                          // ProductsProvider를 통해 즐겨찾기 토글
                           final productsProvider = 
                               Provider.of<ProductsProvider>(context, listen: false);
                           productsProvider.toggleFavorite(product.id);
