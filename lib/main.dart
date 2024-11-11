@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import './screens/cart_screen.dart';
@@ -7,6 +6,7 @@ import './screens/home_screen.dart';
 import './screens/profile_screen.dart';
 import './screens/taste_test_screen.dart';
 import './screens/login_screen.dart';
+import './screens/signup_screen.dart';
 import 'package:provider/provider.dart';
 import './providers/products_provider.dart';
 import './providers/cart_provider.dart';
@@ -53,9 +53,9 @@ class MyApp extends StatelessWidget {
         title: 'Orange Potion',
         theme: ThemeData(
           primarySwatch: Colors.orange,
-          colorScheme: const ColorScheme.light(
-            primary: Colors.orange,
-            secondary: Colors.orangeAccent,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.orange,
+            brightness: Brightness.light,
           ),
           scaffoldBackgroundColor: Colors.white,
           appBarTheme: const AppBarTheme(
@@ -71,27 +71,33 @@ class MyApp extends StatelessWidget {
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
             selectedItemColor: Colors.orange,
             unselectedItemColor: Colors.grey,
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
+            type: BottomNavigationBarType.fixed,
           ),
           useMaterial3: true,
         ),
         home: const HomeScreen(),
         routes: {
+          '/': (context) => const HomeScreen(),
           '/login': (context) => const LoginScreen(),
-          '/product-detail': (_) => const ProductDetailScreen(),
-          '/cart': (_) => const CartScreen(),
-          '/profile': (_) => const ProfileScreen(),
-          '/taste-test': (_) => const TasteTestScreen(),
+          '/signup': (context) => const SignUpScreen(),
+          '/cart': (context) => const CartScreen(),
+          '/profile': (context) => const ProfileScreen(),
+          '/taste-test': (context) => const TasteTestScreen(),
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/product-detail') {
-            final productId = settings.arguments as String;
+            final args = settings.arguments as Map<String, dynamic>;
             return MaterialPageRoute(
-              builder: (context) => ProductDetailScreen(),
-              settings: settings,
+              builder: (context) => ProductDetailScreen(
+                productId: args['productId'] as String,
+              ),
             );
           }
           return null;
         },
+        debugShowCheckedModeBanner: false,
       ),
     );
   }

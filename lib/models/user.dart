@@ -1,7 +1,5 @@
-// lib/models/user.dart
-import 'package:flutter/foundation.dart';
 
-class User with ChangeNotifier {
+class User {
   final String id;
   final String email;
   String? name;
@@ -29,7 +27,14 @@ class User with ChangeNotifier {
       name: json['name'],
       age: json['age'],
       gender: json['gender'],
-      preferences: json['preferences'] ?? {},
+      preferences: json['preferences'] ?? {
+        'sweet': 0.0,
+        'sour': 0.0,
+        'bitter': 0.0,
+        'turbidity': 0.0,
+        'fragrance': 0.0,
+        'crisp': 0.0,
+      },
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
@@ -47,9 +52,22 @@ class User with ChangeNotifier {
     };
   }
 
-  void updatePreferences(Map<String, dynamic> newPreferences) {
-    preferences = newPreferences;
-    updatedAt = DateTime.now();
-    notifyListeners();
+  User copyWith({
+    String? name,
+    int? age,
+    String? gender,
+    Map<String, dynamic>? preferences,
+    DateTime? updatedAt,
+  }) {
+    return User(
+      id: id,
+      email: email,
+      name: name ?? this.name,
+      age: age ?? this.age,
+      gender: gender ?? this.gender,
+      preferences: preferences ?? this.preferences,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }

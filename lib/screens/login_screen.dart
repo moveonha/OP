@@ -39,12 +39,12 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (authProvider.user != null) {
-        // 로그인 성공
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('로그인 성공!'),
+            content: Text('환영합니다!'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
       }
@@ -53,8 +53,13 @@ class _LoginScreenState extends State<LoginScreen> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('로그인 실패: $error'),
+          content: Text(
+            error.toString().contains('Invalid login credentials')
+                ? '이메일 또는 비밀번호가 올바르지 않습니다'
+                : '로그인 중 오류가 발생했습니다',
+          ),
           backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
         ),
       );
     } finally {
@@ -68,16 +73,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('로그인'),
-            backgroundColor: Colors.white,
-            elevation: 0,
-            foregroundColor: Colors.black,
-          ),
-          body: SingleChildScrollView(
+    return WillPopScope(
+      onWillPop: () async => !_isLoading,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('로그인'),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          foregroundColor: Colors.black,
+          automaticallyImplyLeading: !_isLoading,
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -99,10 +106,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 40),
                     TextFormField(
                       controller: _emailController,
-                      decoration: const InputDecoration(
+                      enabled: !_isLoading,
+                      decoration: InputDecoration(
                         labelText: '이메일',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.email),
+                        filled: true,
+                        fillColor: Colors.grey[50],
                       ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
@@ -118,10 +130,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
-                      decoration: const InputDecoration(
+                      enabled: !_isLoading,
+                      decoration: InputDecoration(
                         labelText: '비밀번호',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.lock),
+                        filled: true,
+                        fillColor: Colors.grey[50],
                       ),
                       obscureText: true,
                       validator: (value) {
@@ -136,7 +153,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     if (_isLoading)
-                      const Center(child: CircularProgressIndicator())
+                      const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                        ),
+                      )
                     else
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -145,10 +166,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: _signIn,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(12),
                               ),
+                              elevation: 2,
                             ),
                             child: const Text(
                               '로그인',
@@ -165,7 +188,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                             child: const Text(
                               '계정이 없으신가요? 회원가입',
-                              style: TextStyle(color: Colors.orange),
+                              style: TextStyle(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
@@ -175,8 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
