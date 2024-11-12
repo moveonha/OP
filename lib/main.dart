@@ -77,7 +77,7 @@ class MyApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        home: const HomeScreen(),
+        initialRoute: '/',
         routes: {
           '/': (context) => const HomeScreen(),
           '/login': (context) => const LoginScreen(),
@@ -91,7 +91,7 @@ class MyApp extends StatelessWidget {
             final args = settings.arguments as Map<String, dynamic>;
             return MaterialPageRoute(
               builder: (context) => ProductDetailScreen(
-                productId: args['productId'] as String,
+                id: args['id'] as String,
               ),
             );
           }
