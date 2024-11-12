@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:orange_potion_2/screens/login_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/user_preference_provider.dart';
+import '../widgets/hexagon_stats_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -15,8 +17,8 @@ class ProfileScreen extends StatelessWidget {
         elevation: 0,
         foregroundColor: Colors.black,
       ),
-      body: Consumer<AuthProvider>(
-        builder: (context, authProvider, _) {
+      body: Consumer2<AuthProvider, UserPreferenceProvider>(
+        builder: (context, authProvider, userPrefProvider, _) {
           if (!authProvider.isAuthenticated) {
             return Container(
               decoration: const BoxDecoration(color: Colors.white),
@@ -89,6 +91,7 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 프로필 섹션
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -133,6 +136,63 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
+
+                    // 취향 테스트 결과 또는 안내 카드
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: userPrefProvider.preferences.isNotEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        '나의 취향 분석',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pushNamed(context, '/taste-test');
+                                        },
+                                        child: const Text('다시하기'),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Center(
+                                    child: HexagonStatsWidget(
+                                      characteristics: userPrefProvider.preferences,
+                                      size: MediaQuery.of(context).size.width * 0.7,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListTile(
+                              leading: const Icon(
+                                Icons.psychology,
+                                color: Colors.orange,
+                              ),
+                              title: const Text('취향 테스트 하러가기'),
+                              subtitle: const Text('나만의 취향을 발견해보세요'),
+                              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                              onTap: () {
+                                Navigator.pushNamed(context, '/taste-test');
+                              },
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 설정 메뉴
                     Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
@@ -140,18 +200,6 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          ListTile(
-                            leading: const Icon(
-                              Icons.psychology,
-                              color: Colors.orange,
-                            ),
-                            title: const Text('취향 테스트 다시하기'),
-                            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                            onTap: () {
-                              Navigator.pushNamed(context, '/taste-test');
-                            },
-                          ),
-                          const Divider(height: 1),
                           ListTile(
                             leading: const Icon(
                               Icons.logout,

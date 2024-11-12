@@ -52,6 +52,8 @@ class UserPreference with ChangeNotifier {
     );
   }
 
+  get isEmpty => null;
+
   // 선호도 업데이트 메서드
   void updatePreference(String key, double value) {
     if (preferences.containsKey(key)) {

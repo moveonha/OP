@@ -1,4 +1,3 @@
-// lib/screens/taste_test_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_preference_provider.dart';
@@ -46,9 +45,10 @@ class _TasteTestScreenState extends State<TasteTestScreen> {
 
   Future<void> _loadExistingPreferences() async {
     final provider = context.read<UserPreferenceProvider>();
-    if (provider.preference != null) {
+    final existingPreferences = provider.preferences;
+    if (existingPreferences.isNotEmpty) {
       setState(() {
-        _preferences.addAll(provider.preference!.preferences);
+        _preferences.addAll(existingPreferences);
       });
     }
   }
@@ -64,18 +64,17 @@ class _TasteTestScreenState extends State<TasteTestScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => const Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+          ),
         ),
       );
 
-      await provider.savePreferences(
-        sweet: _preferences['sweet']!,
-        sour: _preferences['sour']!,
-        bitter: _preferences['bitter']!,
-        turbidity: _preferences['turbidity']!,
-        fragrance: _preferences['fragrance']!,
-        crisp: _preferences['crisp']!,
-      );
+      // 선호도 값을 0-1 범위로 정규화
+      final normalizedPreferences = Map<String, double>.from(_preferences)
+        ..updateAll((key, value) => value / 5.0);
+
+      await provider.updatePreferences(normalizedPreferences);
 
       if (!mounted) return;
 
@@ -84,7 +83,10 @@ class _TasteTestScreenState extends State<TasteTestScreen> {
 
       // 성공 메시지 표시 후 홈 화면으로 이동
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('취향 테스트가 완료되었습니다!')),
+        const SnackBar(
+          content: Text('취향 테스트가 완료되었습니다!'),
+          backgroundColor: Colors.green,
+        ),
       );
 
       // 홈 화면으로 이동
