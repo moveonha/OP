@@ -7,6 +7,7 @@ import './screens/profile_screen.dart';
 import './screens/taste_test_screen.dart';
 import './screens/login_screen.dart';
 import './screens/signup_screen.dart';
+import './screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 import './providers/products_provider.dart';
 import './providers/cart_provider.dart';
@@ -77,8 +78,9 @@ class MyApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        initialRoute: '/',
+        initialRoute: '/splash',  // 초기 라우트를 스플래시 스크린으로 변경
         routes: {
+          '/splash': (context) => const SplashScreen(),  // 스플래시 스크린 추가
           '/': (context) => const HomeScreen(),
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignUpScreen(),

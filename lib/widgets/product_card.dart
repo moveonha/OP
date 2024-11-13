@@ -8,6 +8,7 @@ class ProductCard extends StatefulWidget {
   final double price;
   final String imageUrl;
   final bool isFavorite;
+  final double similarity; // 유사도 추가
   final VoidCallback onFavoriteToggle;
 
   const ProductCard({
@@ -17,6 +18,7 @@ class ProductCard extends StatefulWidget {
     required this.price,
     required this.imageUrl,
     required this.isFavorite,
+    this.similarity = 0.0, // 기본값 설정
     required this.onFavoriteToggle,
   }) : super(key: key);
 
@@ -58,6 +60,7 @@ class _ProductCardState extends State<ProductCard> {
               aspectRatio: 1,
               child: Stack(
                 children: [
+                  // 상품 이미지
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
@@ -97,6 +100,7 @@ class _ProductCardState extends State<ProductCard> {
                       ),
                     ),
                   ),
+                  // 찜하기 버튼
                   Positioned(
                     top: 8,
                     right: 8,
@@ -120,9 +124,45 @@ class _ProductCardState extends State<ProductCard> {
                       ),
                     ),
                   ),
+                  // 취향 일치도 표시
+                  if (widget.similarity > 0)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.favorite,
+                              size: 14,
+                              color: Colors.orange.shade400,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${(widget.similarity * 100).toStringAsFixed(0)}%',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
+            // 상품 정보 및 장바구니
             Container(
               padding: const EdgeInsets.all(12),
               decoration: const BoxDecoration(
@@ -175,11 +215,11 @@ class _ProductCardState extends State<ProductCard> {
                                         }
                                       },
                                     ),
-                                    Container(
-                                      width: 16,
-                                      alignment: Alignment.center,
+                                    SizedBox(
+                                      width: 24,
                                       child: Text(
                                         _quantity.toString(),
+                                        textAlign: TextAlign.center,
                                         style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.bold,

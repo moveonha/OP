@@ -14,47 +14,53 @@ class UserPreference with ChangeNotifier {
   });
 
   factory UserPreference.fromJson(Map<String, dynamic> json) {
-    return UserPreference(
-      userId: json['user_id'] as String,
-      preferences: Map<String, double>.from(json['preferences'] as Map),
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at'] as String) 
-          : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at'] as String) 
-          : null,
-    );
+    try {
+      final prefsMap = (json['preferences'] as Map).cast<String, dynamic>();
+      return UserPreference(
+        userId: json['id'] as String,
+        preferences: prefsMap.map(
+          (key, value) => MapEntry(key, (value as num).toDouble()),
+        ),
+        createdAt: json['created_at'] != null 
+            ? DateTime.parse(json['created_at'] as String) 
+            : null,
+        updatedAt: json['updated_at'] != null 
+            ? DateTime.parse(json['updated_at'] as String) 
+            : null,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error parsing UserPreference: $e');
+      }
+      return UserPreference.createDefault(json['id'] as String);
+    }
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'user_id': userId,
+      'id': userId,
       'preferences': preferences,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
   }
 
-  // 기본 선호도 값을 생성하는 팩토리 생성자
   factory UserPreference.createDefault(String userId) {
     return UserPreference(
       userId: userId,
       preferences: {
-        'sweet': 0.0,       // 단맛
-        'sour': 0.0,        // 신맛
-        'bitter': 0.0,      // 쓴맛
-        'turbidity': 0.0,   // 탁도
-        'fragrance': 0.0,   // 향
-        'crisp': 0.0,       // 청량함
+        'sweet': 0.0,      // 단맛
+        'sour': 0.0,       // 신맛
+        'bitter': 0.0,     // 쓴맛
+        'turbidity': 0.0,  // 탁도
+        'fragrance': 0.0,  // 향
+        'crisp': 0.0,      // 청량함
       },
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
   }
 
-  get isEmpty => null;
-
-  // 선호도 업데이트 메서드
   void updatePreference(String key, double value) {
     if (preferences.containsKey(key)) {
       preferences[key] = value;
@@ -63,26 +69,22 @@ class UserPreference with ChangeNotifier {
     }
   }
 
-  // 전체 선호도 업데이트 메서드
   void updateAllPreferences(Map<String, double> newPreferences) {
     preferences.addAll(newPreferences);
     updatedAt = DateTime.now();
     notifyListeners();
   }
 
-  // 선호도 초기화 메서드
   void resetPreferences() {
     preferences.updateAll((key, value) => 0.0);
     updatedAt = DateTime.now();
     notifyListeners();
   }
 
-  // 특정 선호도 값 가져오기
   double getPreference(String key) {
     return preferences[key] ?? 0.0;
   }
 
-  // 복사본 생성 메서드
   UserPreference copyWith({
     String? userId,
     Map<String, double>? preferences,

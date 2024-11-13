@@ -141,6 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               await Navigator.of(context).pushNamed('/taste-test');
               if (mounted) {
+                // ignore: use_build_context_synchronously
                 Provider.of<ProductsProvider>(context, listen: false)
                     .fetchProducts();
               }

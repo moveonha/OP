@@ -3,7 +3,7 @@ import 'dart:math' show pi, cos, sin;
 
 class HexagonStatsWidget extends StatelessWidget {
   final Map<String, dynamic> characteristics;
-  final Map<String, dynamic>? userPreferences; // 사용자 취향 데이터 추가
+  final Map<String, dynamic>? userPreferences;
   final double size;
 
   const HexagonStatsWidget({
@@ -15,19 +15,21 @@ class HexagonStatsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: size,
       height: size + 40,
       child: CustomPaint(
         size: Size(size, size),
         painter: HexagonStatsPainter(
-          characteristics: characteristics,
-          userPreferences: userPreferences,
+          characteristics: _normalizeValues(characteristics),
+          userPreferences: userPreferences != null 
+              ? _normalizeValues(userPreferences!) 
+              : null,
           backgroundColor: Colors.grey[50]!,
           foregroundColor: Colors.orange.withOpacity(0.2),
-          userColor: Colors.blue.withOpacity(0.2), // 사용자 취향 색상
+          userColor: Colors.blue.withOpacity(0.2),
           strokeColor: Colors.orange,
-          userStrokeColor: Colors.blue, // 사용자 취향 테두리 색상
+          userStrokeColor: Colors.blue,
           guidelineColor: Colors.grey[300]!,
           labelColor: Colors.grey[600]!,
         ),
@@ -36,6 +38,16 @@ class HexagonStatsWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Map<String, double> _normalizeValues(Map<String, dynamic> values) {
+    Map<String, double> normalized = {};
+    values.forEach((key, value) {
+      if (value is num) {
+        normalized[key] = value.toDouble();
+      }
+    });
+    return normalized;
   }
 
   List<Widget> _buildLabels() {
@@ -54,15 +66,17 @@ class HexagonStatsWidget extends StatelessWidget {
       final angle = entry.value * pi / 180;
       final x = center + radius * cos(angle - pi / 2);
       final y = center + radius * sin(angle - pi / 2);
-      final value = ((characteristics[_getKey(entry.key)] ?? 0) * 100).toInt();
-      final userValue = userPreferences != null 
-          ? ((userPreferences![_getKey(entry.key)] ?? 0) * 100).toInt()
-          : null;
+      
+      final value = characteristics[_getKey(entry.key)] ?? 0.0;
+      final displayValue = (value * 100).toInt();
+      
+      final userValue = userPreferences?[_getKey(entry.key)];
+      final userDisplayValue = userValue != null ? (userValue * 100).toInt() : null;
 
       return Positioned(
         left: x - 40,
         top: y - 9,
-        child: Container(
+        child: SizedBox(
           width: 80,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -91,51 +105,20 @@ class HexagonStatsWidget extends StatelessWidget {
                         color: Colors.black87,
                       ),
                     ),
-                    if (userValue != null) ...[
+                    if (userDisplayValue != null) ...[
                       const SizedBox(height: 2),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.orange,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
+                          _buildValueLabel(displayValue, Colors.orange),
                           const SizedBox(width: 4),
-                          Text(
-                            '$value%',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.orange,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$userValue%',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.blue,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                          _buildValueLabel(userDisplayValue, Colors.blue),
                         ],
                       ),
                     ] else
                       Text(
-                        '$value%',
+                        '$displayValue%',
                         style: const TextStyle(
                           fontSize: 11,
                           color: Colors.orange,
@@ -152,6 +135,38 @@ class HexagonStatsWidget extends StatelessWidget {
     }).toList();
   }
 
+  Widget _buildValueLabel(int value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 4,
+            height: 4,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 2),
+          Text(
+            '$value',
+            style: TextStyle(
+              fontSize: 9,
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _getKey(String label) {
     switch (label) {
       case '단맛': return 'sweet';
@@ -166,8 +181,8 @@ class HexagonStatsWidget extends StatelessWidget {
 }
 
 class HexagonStatsPainter extends CustomPainter {
-  final Map<String, dynamic> characteristics;
-  final Map<String, dynamic>? userPreferences;
+  final Map<String, double> characteristics;
+  final Map<String, double>? userPreferences;
   final Color backgroundColor;
   final Color foregroundColor;
   final Color userColor;
@@ -193,20 +208,15 @@ class HexagonStatsPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width * 0.4;
 
-    // 배경 그리드 그리기
     _drawGrid(canvas, center, radius);
-
-    // 상품 데이터 영역 그리기
     _drawDataArea(canvas, center, radius, characteristics, foregroundColor, strokeColor);
-
-    // 사용자 취향 데이터 영역 그리기
+    
     if (userPreferences != null) {
       _drawDataArea(canvas, center, radius, userPreferences!, userColor, userStrokeColor);
     }
   }
 
   void _drawGrid(Canvas canvas, Offset center, double radius) {
-    // 동심 육각형 그리기
     for (var i = 1; i <= 5; i++) {
       final gridRadius = radius * (i / 5);
       _drawHexagon(
@@ -218,7 +228,6 @@ class HexagonStatsPainter extends CustomPainter {
         0.5,
       );
 
-      // 퍼센트 표시
       if (i < 5) {
         final percent = (i * 20).toString();
         final textPainter = TextPainter(
@@ -242,7 +251,6 @@ class HexagonStatsPainter extends CustomPainter {
       }
     }
 
-    // 방사형 선 그리기
     for (var i = 0; i < 6; i++) {
       final angle = (i * 60 - 90) * pi / 180;
       final point = Offset(
@@ -259,8 +267,14 @@ class HexagonStatsPainter extends CustomPainter {
     }
   }
 
-  void _drawDataArea(Canvas canvas, Offset center, double radius,
-      Map<String, dynamic> data, Color fillColor, Color borderColor) {
+  void _drawDataArea(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    Map<String, double> data,
+    Color fillColor,
+    Color borderColor,
+  ) {
     final path = Path();
     final values = [
       data['sweet'] ?? 0,
@@ -285,7 +299,6 @@ class HexagonStatsPainter extends CustomPainter {
     }
     path.close();
 
-    // 영역 채우기
     canvas.drawPath(
       path,
       Paint()
@@ -293,7 +306,6 @@ class HexagonStatsPainter extends CustomPainter {
         ..style = PaintingStyle.fill,
     );
 
-    // 테두리 그리기
     canvas.drawPath(
       path,
       Paint()
@@ -302,7 +314,6 @@ class HexagonStatsPainter extends CustomPainter {
         ..strokeWidth = 1.5,
     );
 
-    // 데이터 포인트 그리기
     for (var i = 0; i < 6; i++) {
       final angle = (i * 60 - 90) * pi / 180;
       final point = Offset(
@@ -312,7 +323,7 @@ class HexagonStatsPainter extends CustomPainter {
 
       canvas.drawCircle(
         point,
-        3,
+        2.5,
         Paint()
           ..color = Colors.white
           ..style = PaintingStyle.fill,
@@ -320,7 +331,7 @@ class HexagonStatsPainter extends CustomPainter {
 
       canvas.drawCircle(
         point,
-        2,
+        1.5,
         Paint()
           ..color = borderColor
           ..style = PaintingStyle.fill,

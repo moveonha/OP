@@ -78,7 +78,7 @@ class CartItemWidget extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    item.imageUrl ?? '',  // CartItem 모델에 imageUrl 필드 추가 필요
+                    item.imageUrl,  // CartItem 모델에 imageUrl 필드 추가 필요
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Icon(
