@@ -48,7 +48,7 @@ class _TasteTestScreenState extends State<TasteTestScreen> {
     final existingPreferences = provider.preferences;
     if (existingPreferences.isNotEmpty) {
       setState(() {
-        _preferences.addAll(existingPreferences);
+        _preferences.addAll(Map<String, double>.from(existingPreferences));
       });
     }
   }
@@ -59,14 +59,11 @@ class _TasteTestScreenState extends State<TasteTestScreen> {
     try {
       final provider = Provider.of<UserPreferenceProvider>(context, listen: false);
       
-      // 로딩 표시
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-          ),
+          child: CircularProgressIndicator(),
         ),
       );
 
@@ -75,38 +72,27 @@ class _TasteTestScreenState extends State<TasteTestScreen> {
         ..updateAll((key, value) => value / 5.0);
 
       await provider.updatePreferences(normalizedPreferences);
+      
+      // 데이터 즉시 로드
+      await provider.loadPreferences();
 
       if (!mounted) return;
 
-      // 로딩 다이얼로그 닫기
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
 
-      // 성공 메시지 표시 후 홈 화면으로 이동
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('취향 테스트가 완료되었습니다!'),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text('취향 테스트가 완료되었습니다!')),
       );
 
-      // 홈 화면으로 이동
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/',
-        (route) => false,
-      );
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
 
-      // 상품 목록 새로고침
       if (mounted) {
         Provider.of<ProductsProvider>(context, listen: false).fetchProducts();
       }
 
     } catch (error) {
       if (!mounted) return;
-
-      // 로딩 다이얼로그 닫기
-      Navigator.of(context).pop();
-
-      // 에러 메시지 표시
+      Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('오류가 발생했습니다: $error')),
       );
@@ -141,6 +127,7 @@ class _TasteTestScreenState extends State<TasteTestScreen> {
           title: const Text('취향 테스트'),
           backgroundColor: Colors.white,
           elevation: 0,
+          foregroundColor: Colors.black,
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -208,6 +195,10 @@ class _TasteTestScreenState extends State<TasteTestScreen> {
                         await _saveTasteTest();
                       }
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                    ),
                     child: Text(_currentIndex < _questions.length - 1 ? '다음' : '완료'),
                   ),
                   if (_currentIndex < _questions.length - 1)

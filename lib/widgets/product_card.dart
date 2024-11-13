@@ -54,7 +54,6 @@ class _ProductCardState extends State<ProductCard> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 이미지 섹션
             AspectRatio(
               aspectRatio: 1,
               child: Stack(
@@ -124,7 +123,6 @@ class _ProductCardState extends State<ProductCard> {
                 ],
               ),
             ),
-            // 상품 정보 섹션
             Container(
               padding: const EdgeInsets.all(12),
               decoration: const BoxDecoration(
@@ -158,92 +156,94 @@ class _ProductCardState extends State<ProductCard> {
                           color: Colors.orange,
                         ),
                       ),
-                      Container(
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: _showQuantitySelector
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _buildQuantityButton(
-                                    Icons.remove,
-                                    () {
-                                      if (_quantity > 1) {
-                                        setState(() => _quantity--);
-                                      }
-                                    },
-                                  ),
-                                  Container(
-                                    width: 16,
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      _quantity.toString(),
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
+                      Consumer<CartProvider>(
+                        builder: (context, cart, _) => Container(
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: _showQuantitySelector
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _buildQuantityButton(
+                                      Icons.remove,
+                                      () {
+                                        if (_quantity > 1) {
+                                          setState(() => _quantity--);
+                                        }
+                                      },
+                                    ),
+                                    Container(
+                                      width: 16,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        _quantity.toString(),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  _buildQuantityButton(
-                                    Icons.add,
-                                    () => setState(() => _quantity++),
-                                  ),
-                                  Container(
-                                    width: 1,
-                                    height: 16,
-                                    color: Colors.orange.shade200,
-                                  ),
-                                  _buildQuantityButton(
-                                    Icons.shopping_cart,
-                                    () {
-                                      final cart = Provider.of<CartProvider>(
-                                        context,
-                                        listen: false,
-                                      );
-                                      cart.addItem(
-                                        widget.id,
-                                        widget.title,
-                                        widget.price,
-                                        _quantity,
-                                      );
-                                      setState(() {
-                                        _showQuantitySelector = false;
-                                        _quantity = 1;
-                                      });
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            '${widget.title} $_quantity개가 장바구니에 추가되었습니다',
+                                    _buildQuantityButton(
+                                      Icons.add,
+                                      () => setState(() => _quantity++),
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 16,
+                                      color: Colors.orange.shade200,
+                                    ),
+                                    _buildQuantityButton(
+                                      Icons.shopping_cart,
+                                      () {
+                                        final currentQuantity = _quantity;
+                                        cart.addItem(
+                                          widget.id,
+                                          widget.title,
+                                          widget.price,
+                                          currentQuantity,
+                                        );
+                                        setState(() {
+                                          _showQuantitySelector = false;
+                                          _quantity = 1;
+                                        });
+                                        ScaffoldMessenger.of(context)
+                                            .hideCurrentSnackBar();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              '${widget.title} $currentQuantity개가 장바구니에 추가되었습니다',
+                                            ),
+                                            action: SnackBarAction(
+                                              label: '실행 취소',
+                                              onPressed: () {
+                                                cart.removeSingleItem(widget.id);
+                                              },
+                                            ),
                                           ),
-                                          action: SnackBarAction(
-                                            label: '실행 취소',
-                                            onPressed: () {
-                                              cart.removeSingleItem(widget.id);
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    },
+                                        );
+                                      },
+                                      color: Colors.orange,
+                                    ),
+                                  ],
+                                )
+                              : IconButton(
+                                  icon: const Icon(
+                                    Icons.add_shopping_cart,
                                     color: Colors.orange,
+                                    size: 20,
                                   ),
-                                ],
-                              )
-                            : IconButton(
-                                icon: const Icon(
-                                  Icons.add_shopping_cart,
-                                  color: Colors.orange,
-                                  size: 20,
+                                  onPressed: () =>
+                                      setState(() => _showQuantitySelector = true),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 32,
+                                    minHeight: 32,
+                                  ),
                                 ),
-                                onPressed: () => setState(() => _showQuantitySelector = true),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(
-                                  minWidth: 32,
-                                  minHeight: 32,
-                                ),
-                              ),
+                        ),
                       ),
                     ],
                   ),
@@ -256,7 +256,8 @@ class _ProductCardState extends State<ProductCard> {
     );
   }
 
-  Widget _buildQuantityButton(IconData icon, VoidCallback onPressed, {Color? color}) {
+  Widget _buildQuantityButton(IconData icon, VoidCallback onPressed,
+      {Color? color}) {
     return SizedBox(
       width: 28,
       height: 32,

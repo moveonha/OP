@@ -1,4 +1,3 @@
-// lib/providers/cart_provider.dart
 import 'package:flutter/foundation.dart';
 import '../models/cart_item.dart';
 
@@ -17,7 +16,7 @@ class CartProvider with ChangeNotifier {
     return total;
   }
 
-  void addItem(String productId, String title, double price, [int quantity = 1]) {
+  void addItem(String productId, String title, double price, [int quantity = 1, String imageUrl = '']) {
     if (_items.containsKey(productId)) {
       // 이미 장바구니에 있는 상품인 경우
       _items.update(
@@ -25,8 +24,9 @@ class CartProvider with ChangeNotifier {
         (existingItem) => CartItem(
           id: existingItem.id,
           title: existingItem.title,
-          quantity: existingItem.quantity + quantity, // 선택된 수량만큼 추가
+          quantity: existingItem.quantity + quantity,
           price: existingItem.price,
+          imageUrl: existingItem.imageUrl,
         ),
       );
     } else {
@@ -36,8 +36,9 @@ class CartProvider with ChangeNotifier {
         () => CartItem(
           id: DateTime.now().toString(),
           title: title,
-          quantity: quantity, // 선택된 수량으로 초기화
+          quantity: quantity,
           price: price,
+          imageUrl: imageUrl,
         ),
       );
     }
@@ -61,6 +62,7 @@ class CartProvider with ChangeNotifier {
           title: existingItem.title,
           quantity: existingItem.quantity - 1,
           price: existingItem.price,
+          imageUrl: existingItem.imageUrl,
         ),
       );
     } else {
@@ -69,7 +71,6 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // 특정 상품의 수량을 직접 설정하는 메서드 추가
   void updateItemQuantity(String productId, int quantity) {
     if (!_items.containsKey(productId)) {
       return;
@@ -84,6 +85,7 @@ class CartProvider with ChangeNotifier {
           title: existingItem.title,
           quantity: quantity,
           price: existingItem.price,
+          imageUrl: existingItem.imageUrl,
         ),
       );
     }
@@ -95,7 +97,6 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // 장바구니에 있는 특정 상품의 수량을 반환하는 메서드 추가
   int getItemQuantity(String productId) {
     if (_items.containsKey(productId)) {
       return _items[productId]!.quantity;
