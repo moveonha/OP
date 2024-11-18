@@ -1,76 +1,38 @@
+// lib/screens/cart_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/cart_item_widget.dart';
 
 class CartScreen extends StatelessWidget {
-  const CartScreen({super.key});
+  const CartScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '장바구니',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
+        title: const Text('장바구니'),
+        automaticallyImplyLeading: false,
       ),
       body: Consumer<CartProvider>(
-        builder: (context, cart, child) {
+        builder: (ctx, cart, child) {
           if (cart.items.isEmpty) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.shopping_cart_outlined,
                     size: 64,
-                    color: Colors.grey[400],
+                    color: Colors.grey,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     '장바구니가 비어있습니다',
                     style: TextStyle(
+                      color: Colors.grey,
                       fontSize: 16,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '마음에 드는 전통주를 담아보세요',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushReplacementNamed('/');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      '쇼핑 계속하기',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
                     ),
                   ),
                 ],
@@ -82,12 +44,20 @@ class CartScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
                   itemCount: cart.items.length,
-                  itemBuilder: (ctx, i) => CartItemWidget(
-                    item: cart.items.values.toList()[i],
-                    productId: cart.items.keys.toList()[i],
-                  ),
+                  itemBuilder: (ctx, i) {
+                    final cartItem = cart.items.values.toList()[i];
+                    final productId = cart.items.keys.toList()[i];
+                    return CartItemWidget(
+                      key: ValueKey(cartItem.id),
+                      id: cartItem.id,
+                      productId: productId,
+                      title: cartItem.title,
+                      quantity: cartItem.quantity,
+                      price: cartItem.price,
+                      imageUrl: cartItem.imageUrl,
+                    );
+                  },
                 ),
               ),
               Container(
@@ -96,114 +66,59 @@ class CartScreen extends StatelessWidget {
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      offset: const Offset(0, -4),
-                      blurRadius: 8,
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 1,
+                      blurRadius: 4,
+                      offset: const Offset(0, -1),
                     ),
                   ],
                 ),
                 child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
-                            '총 상품금액',
+                            '총 금액',
                             style: TextStyle(
-                              fontSize: 14,
                               color: Colors.grey,
+                              fontSize: 14,
                             ),
                           ),
                           Text(
-                            '₩${cart.totalAmount.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            '배송비',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          Text(
-                            cart.totalAmount >= 50000 ? '무료' : '₩3,000',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Divider(),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            '결제 예정금액',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            '₩${(cart.totalAmount + (cart.totalAmount >= 50000 ? 0 : 3000)).toStringAsFixed(0)}',
+                            '${cart.totalAmount.toStringAsFixed(0)}원',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.orange,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: cart.totalAmount <= 0 ? null : () {
-                            // 주문 처리 로직
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            disabledBackgroundColor: Colors.grey[300],
+                      ElevatedButton(
+                        onPressed: cart.items.isEmpty
+                            ? null
+                            : () {
+                                // TODO: 주문 처리 로직 구현
+                              },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 16,
                           ),
-                          child: const Text(
-                            '주문하기',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text(
+                          '주문하기',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      if (cart.totalAmount < 50000) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          '${(50000 - cart.totalAmount).toStringAsFixed(0)}원 더 구매 시 무료배송',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),

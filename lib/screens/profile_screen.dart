@@ -12,7 +12,8 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('마이페이지'),
+        title: const Text('내 정보'),
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: Colors.black,

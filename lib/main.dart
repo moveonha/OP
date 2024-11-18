@@ -85,7 +85,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignUpScreen(),
           '/cart': (context) => const CartScreen(),
-          '/profile': (context) => const ProfileScreen(),
+          '/my-info': (context) => const ProfileScreen(),
           '/taste-test': (context) => const TasteTestScreen(),
         },
         onGenerateRoute: (settings) {

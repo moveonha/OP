@@ -107,7 +107,7 @@ class _ProductCardState extends State<ProductCard> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.9),
-                        shape: BoxShape.circle,
+                        shape: BoxShape.circle, 
                       ),
                       child: IconButton(
                         icon: Icon(

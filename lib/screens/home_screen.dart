@@ -126,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           'Orange Potion',
           style: TextStyle(
@@ -136,17 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.psychology, color: Colors.black),
-            onPressed: () async {
-              await Navigator.of(context).pushNamed('/taste-test');
-              if (mounted) {
-                // ignore: use_build_context_synchronously
-                Provider.of<ProductsProvider>(context, listen: false)
-                    .fetchProducts();
-              }
-            },
-          ),
+          // 취향분석 버튼 제거
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black),
             onPressed: () {
@@ -180,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: '마이페이지',
+            label: '내정보', // '내 정보'에서 '내정보'로 변경
           ),
         ],
         selectedItemColor: Colors.orange,

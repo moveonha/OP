@@ -1,22 +1,32 @@
+// lib/widgets/cart_item_widget.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/cart_item.dart';
 import '../providers/cart_provider.dart';
 
 class CartItemWidget extends StatelessWidget {
-  final CartItem item;
+  final String id;
   final String productId;
+  final String title;
+  final int quantity;
+  final double price;
+  final String imageUrl;
 
   const CartItemWidget({
     super.key,
-    required this.item,
+    required this.id,
     required this.productId,
+    required this.title,
+    required this.quantity,
+    required this.price,
+    required this.imageUrl,
   });
 
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: ValueKey(item.id),
+      key: ValueKey(id),
       background: Container(
         decoration: BoxDecoration(
           color: Colors.red.shade100,
@@ -67,7 +77,6 @@ class CartItemWidget extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // 상품 이미지
               Container(
                 width: 80,
                 height: 80,
@@ -78,7 +87,7 @@ class CartItemWidget extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    item.imageUrl,  // CartItem 모델에 imageUrl 필드 추가 필요
+                    imageUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Icon(
@@ -91,13 +100,12 @@ class CartItemWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              // 상품 정보
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.title,
+                      title,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -107,7 +115,7 @@ class CartItemWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '₩${item.price.toStringAsFixed(0)}',
+                      '₩${price.toStringAsFixed(0)}',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -117,7 +125,6 @@ class CartItemWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              // 수량 조절
               Container(
                 decoration: BoxDecoration(
                   color: Colors.orange.shade50,
@@ -129,9 +136,9 @@ class CartItemWidget extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.remove, size: 16),
                       onPressed: () {
-                        if (item.quantity > 1) {
+                        if (quantity > 1) {
                           Provider.of<CartProvider>(context, listen: false)
-                              .updateItemQuantity(productId, item.quantity - 1);
+                              .updateItemQuantity(productId, quantity - 1);
                         } else {
                           showDialog(
                             context: context,
@@ -169,7 +176,7 @@ class CartItemWidget extends StatelessWidget {
                       width: 32,
                       alignment: Alignment.center,
                       child: Text(
-                        item.quantity.toString(),
+                        quantity.toString(),
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -180,7 +187,7 @@ class CartItemWidget extends StatelessWidget {
                       icon: const Icon(Icons.add, size: 16),
                       onPressed: () {
                         Provider.of<CartProvider>(context, listen: false)
-                            .updateItemQuantity(productId, item.quantity + 1);
+                            .updateItemQuantity(productId, quantity + 1);
                       },
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
