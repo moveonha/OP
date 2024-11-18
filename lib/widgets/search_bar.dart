@@ -148,7 +148,7 @@ class CustomSearchDelegate extends SearchDelegate {
             ),
           ),
           subtitle: Text(
-            '${product.price}원',
+            '${product.price.toStringAsFixed(0)}원',
             style: const TextStyle(
               color: Colors.orange,
               fontWeight: FontWeight.bold,
