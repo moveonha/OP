@@ -7,7 +7,7 @@ class Product with ChangeNotifier {
   final double price;
   final String imageUrl;
   final Map<String, double> characteristics;
-  double similarity;
+  final double? similarity;
   bool isFavorite;
 
   Product({
@@ -17,7 +17,7 @@ class Product with ChangeNotifier {
     required this.price,
     required this.imageUrl,
     this.characteristics = const {},
-    this.similarity = 0.0,
+    this.similarity,
     this.isFavorite = false,
   });
 

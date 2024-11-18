@@ -8,7 +8,7 @@ class ProductCard extends StatefulWidget {
   final double price;
   final String imageUrl;
   final bool isFavorite;
-  final double similarity; // 유사도 추가
+  final double? similarity;
   final VoidCallback onFavoriteToggle;
 
   const ProductCard({
@@ -18,7 +18,7 @@ class ProductCard extends StatefulWidget {
     required this.price,
     required this.imageUrl,
     required this.isFavorite,
-    this.similarity = 0.0, // 기본값 설정
+    this.similarity,
     required this.onFavoriteToggle,
   }) : super(key: key);
 
@@ -27,13 +27,10 @@ class ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<ProductCard> {
-  bool _showQuantitySelector = false;
-  int _quantity = 1;
-
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 0,
       margin: const EdgeInsets.all(8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -63,7 +60,7 @@ class _ProductCardState extends State<ProductCard> {
                   // 상품 이미지
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: const Color(0xFFEFEFEF),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(12),
                       ),
@@ -107,12 +104,12 @@ class _ProductCardState extends State<ProductCard> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.9),
-                        shape: BoxShape.circle, 
+                        shape: BoxShape.circle,
                       ),
                       child: IconButton(
                         icon: Icon(
                           widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: Colors.red,
+                          color: Colors.orange,
                           size: 20,
                         ),
                         onPressed: widget.onFavoriteToggle,
@@ -125,7 +122,7 @@ class _ProductCardState extends State<ProductCard> {
                     ),
                   ),
                   // 취향 일치도 표시
-                  if (widget.similarity > 0)
+                  if (widget.similarity != null && widget.similarity! > 0)
                     Positioned(
                       top: 8,
                       left: 8,
@@ -148,9 +145,9 @@ class _ProductCardState extends State<ProductCard> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${(widget.similarity * 100).toStringAsFixed(0)}%',
+                              '${(widget.similarity! * 100).toStringAsFixed(0)}%',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.orange.shade700,
                               ),
@@ -162,7 +159,7 @@ class _ProductCardState extends State<ProductCard> {
                 ],
               ),
             ),
-            // 상품 정보 및 장바구니
+            // 상품 정보
             Container(
               padding: const EdgeInsets.all(12),
               decoration: const BoxDecoration(
@@ -180,136 +177,23 @@ class _ProductCardState extends State<ProductCard> {
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        '₩${widget.price.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.orange,
-                        ),
-                      ),
-                      Consumer<CartProvider>(
-                        builder: (context, cart, _) => Container(
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: _showQuantitySelector
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _buildQuantityButton(
-                                      Icons.remove,
-                                      () {
-                                        if (_quantity > 1) {
-                                          setState(() => _quantity--);
-                                        }
-                                      },
-                                    ),
-                                    SizedBox(
-                                      width: 24,
-                                      child: Text(
-                                        _quantity.toString(),
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    _buildQuantityButton(
-                                      Icons.add,
-                                      () => setState(() => _quantity++),
-                                    ),
-                                    Container(
-                                      width: 1,
-                                      height: 16,
-                                      color: Colors.orange.shade200,
-                                    ),
-                                    _buildQuantityButton(
-                                      Icons.shopping_cart,
-                                      () {
-                                        final currentQuantity = _quantity;
-                                        cart.addItem(
-                                          widget.id,
-                                          widget.title,
-                                          widget.price,
-                                          currentQuantity,
-                                        );
-                                        setState(() {
-                                          _showQuantitySelector = false;
-                                          _quantity = 1;
-                                        });
-                                        ScaffoldMessenger.of(context)
-                                            .hideCurrentSnackBar();
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              '${widget.title} $currentQuantity개가 장바구니에 추가되었습니다',
-                                            ),
-                                            action: SnackBarAction(
-                                              label: '실행 취소',
-                                              onPressed: () {
-                                                cart.removeSingleItem(widget.id);
-                                              },
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      color: Colors.orange,
-                                    ),
-                                  ],
-                                )
-                              : IconButton(
-                                  icon: const Icon(
-                                    Icons.add_shopping_cart,
-                                    color: Colors.orange,
-                                    size: 20,
-                                  ),
-                                  onPressed: () =>
-                                      setState(() => _showQuantitySelector = true),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                    minWidth: 32,
-                                    minHeight: 32,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    '₩${widget.price.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
                   ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildQuantityButton(IconData icon, VoidCallback onPressed,
-      {Color? color}) {
-    return SizedBox(
-      width: 28,
-      height: 32,
-      child: IconButton(
-        icon: Icon(
-          icon,
-          size: 16,
-          color: color ?? Colors.orange,
-        ),
-        onPressed: onPressed,
-        padding: EdgeInsets.zero,
-        splashRadius: 14,
       ),
     );
   }

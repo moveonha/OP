@@ -1,5 +1,3 @@
-// lib/widgets/cart_item_widget.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/cart_item.dart';
@@ -25,64 +23,73 @@ class CartItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dismissible(
-      key: ValueKey(id),
-      background: Container(
-        decoration: BoxDecoration(
-          color: Colors.red.shade100,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        child: Icon(
-          Icons.delete_outline,
-          color: Colors.red.shade700,
-          size: 24,
-        ),
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
       ),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) {
-        return showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('상품 삭제'),
-            content: const Text('장바구니에서 이 상품을 삭제하시겠습니까?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('취소'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: Text(
-                  '삭제',
-                  style: TextStyle(color: Colors.red.shade700),
-                ),
-              ),
-            ],
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Dismissible(
+        key: ValueKey(id),
+        background: Container(
+          decoration: BoxDecoration(
+            color: Colors.red.shade50,
+            borderRadius: BorderRadius.circular(12),
           ),
-        );
-      },
-      onDismissed: (direction) {
-        Provider.of<CartProvider>(context, listen: false).removeItem(productId);
-      },
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.grey.shade200),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          child: Icon(
+            Icons.delete_outline,
+            color: Colors.red.shade400,
+            size: 24,
+          ),
         ),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (direction) {
+          return showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('상품 삭제'),
+              content: const Text('장바구니에서 이 상품을 삭제하시겠습니까?'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text(
+                    '취소',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(
+                    '삭제',
+                    style: TextStyle(color: Colors.red.shade400),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        onDismissed: (direction) {
+          Provider.of<CartProvider>(context, listen: false).removeItem(productId);
+        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
+              // 상품 이미지
               Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey[100],
+                  color: const Color(0xFFEFEFEF),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -100,6 +107,7 @@ class CartItemWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
+              // 상품 정보
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,18 +124,20 @@ class CartItemWidget extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       '₩${price.toStringAsFixed(0)}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 16),
+              // 수량 조절
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
+                  color: const Color(0xFFEFEFEF),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -145,10 +155,16 @@ class CartItemWidget extends StatelessWidget {
                             builder: (ctx) => AlertDialog(
                               title: const Text('상품 삭제'),
                               content: const Text('장바구니에서 이 상품을 삭제하시겠습니까?'),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(ctx).pop(),
-                                  child: const Text('취소'),
+                                  child: const Text(
+                                    '취소',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
                                 ),
                                 TextButton(
                                   onPressed: () {
@@ -158,7 +174,7 @@ class CartItemWidget extends StatelessWidget {
                                   },
                                   child: Text(
                                     '삭제',
-                                    style: TextStyle(color: Colors.red.shade700),
+                                    style: TextStyle(color: Colors.red.shade400),
                                   ),
                                 ),
                               ],

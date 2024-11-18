@@ -1,4 +1,3 @@
-// lib/providers/recommendation_provider.dart
 import 'package:flutter/foundation.dart';
 import '../models/product.dart';
 import '../config/supabase_config.dart';
@@ -42,26 +41,28 @@ class RecommendationProvider with ChangeNotifier {
         var newProduct = Product.fromJson(product);
         
         // 사용자 취향과 제품 특성 간의 유사도 계산
+        double? similarity;
         if (userPrefs['preferences'] != null) {
           final preferences = Map<String, double>.from(userPrefs['preferences']);
-          double similarity = calculateSimilarity(preferences, newProduct.characteristics);
-          newProduct = Product(
-            id: newProduct.id,
-            title: newProduct.title,
-            description: newProduct.description,
-            price: newProduct.price,
-            imageUrl: newProduct.imageUrl,
-            characteristics: newProduct.characteristics,
-            similarity: similarity,
-            isFavorite: newProduct.isFavorite,
-          );
+          similarity = calculateSimilarity(preferences, newProduct.characteristics);
         }
-        
-        productList.add(newProduct);
+
+        productList.add(Product(
+          id: newProduct.id,
+          title: newProduct.title,
+          description: newProduct.description,
+          price: newProduct.price,
+          imageUrl: newProduct.imageUrl,
+          characteristics: newProduct.characteristics,
+          similarity: similarity, // nullable double로 전달
+          isFavorite: newProduct.isFavorite,
+        ));
       }
 
-      // 유사도를 기준으로 정렬
-      productList.sort((a, b) => b.similarity.compareTo(a.similarity));
+      // 유사도를 기준으로 정렬 (null 처리 추가)
+      productList.sort((a, b) => 
+        (b.similarity ?? 0).compareTo(a.similarity ?? 0)
+      );
       
       _recommendedProducts = productList;
       _error = null;

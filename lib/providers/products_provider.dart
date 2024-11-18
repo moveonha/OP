@@ -1,4 +1,5 @@
 // lib/providers/products_provider.dart
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product.dart';
@@ -28,10 +29,20 @@ class ProductsProvider with ChangeNotifier {
         break;
       case '추천순':
       default:
+        sortedItems.sort((a, b) => 
+          (b.similarity ?? 0).compareTo(a.similarity ?? 0));
         break;
     }
     
     return sortedItems;
+  }
+
+  List<Product> get topRecommendedProducts {
+    var recommendedItems = _items
+        .where((product) => product.similarity != null)
+        .toList()
+      ..sort((a, b) => (b.similarity ?? 0).compareTo(a.similarity ?? 0));
+    return recommendedItems.take(5).toList();
   }
 
   List<Product> get favoriteItems {
@@ -51,8 +62,6 @@ class ProductsProvider with ChangeNotifier {
           .select()
           .order('created_at', ascending: false);
 
-      print('Fetched response: $response'); // 디버깅용
-
       _items = (response as List).map<Product>((json) => Product(
         id: json['id'].toString(),
         title: json['title'] ?? '',
@@ -63,9 +72,10 @@ class ProductsProvider with ChangeNotifier {
             ? Map<String, double>.from(json['characteristics'])
             : {},
         isFavorite: json['is_favorite'] ?? false,
+        similarity: json['similarity'] != null 
+            ? (json['similarity'] as num).toDouble() 
+            : null,
       )).toList();
-
-      print('Converted to products: ${_items.length}'); // 디버깅용
 
     } catch (error) {
       _error = '상품을 불러오는데 실패했습니다: $error';
@@ -76,33 +86,40 @@ class ProductsProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addProduct(Product product) async {
+  Future<void> toggleFavorite(String productId) async {
     try {
-      final response = await _supabase.from('products').insert({
-        'title': product.title,
-        'description': product.description,
-        'price': product.price,
-        'image_url': product.imageUrl,
-        'characteristics': product.characteristics,
-        'is_favorite': product.isFavorite,
-      }).select();
+      final productIndex = _items.indexWhere((p) => p.id == productId);
+      if (productIndex >= 0) {
+        final product = _items[productIndex];
+        final newFavoriteStatus = !product.isFavorite;
 
-      if (response.isNotEmpty) {
-        final newProduct = Product(
-          id: response[0]['id'].toString(),
-          title: response[0]['title'],
-          description: response[0]['description'],
-          price: response[0]['price'].toDouble(),
-          imageUrl: response[0]['image_url'],
-          characteristics: Map<String, double>.from(response[0]['characteristics'] ?? {}),
-          isFavorite: response[0]['is_favorite'] ?? false,
+        await _supabase
+            .from('products')
+            .update({'is_favorite': newFavoriteStatus})
+            .eq('id', productId);
+
+        _items[productIndex] = Product(
+          id: product.id,
+          title: product.title,
+          description: product.description,
+          price: product.price,
+          imageUrl: product.imageUrl,
+          characteristics: product.characteristics,
+          isFavorite: newFavoriteStatus,
+          similarity: product.similarity, // null 허용
         );
-        _items.add(newProduct);
         notifyListeners();
       }
     } catch (error) {
-      print('Error adding product: $error');
-      _error = '상품 추가에 실패했습니다: $error';
+      print('Error toggling favorite: $error');
+      _error = '즐겨찾기 설정에 실패했습니다: $error';
+    }
+  }
+
+  void sortProducts(String sortOrder) {
+    if (_currentSort != sortOrder) {
+      _currentSort = sortOrder;
+      notifyListeners();
     }
   }
 
@@ -111,31 +128,6 @@ class ProductsProvider with ChangeNotifier {
       (product) => product.id == id,
       orElse: () => throw Exception('상품을 찾을 수 없습니다.'),
     );
-  }
-
-  void setSortOrder(String sortOrder) {
-    if (_currentSort != sortOrder) {
-      _currentSort = sortOrder;
-      notifyListeners();
-    }
-  }
-
-  Future<void> toggleFavorite(String productId) async {
-    try {
-      final product = findById(productId);
-      final newFavoriteStatus = !product.isFavorite;
-
-      await _supabase
-          .from('products')
-          .update({'is_favorite': newFavoriteStatus})
-          .eq('id', productId);
-
-      product.toggleFavorite();
-      notifyListeners();
-    } catch (error) {
-      print('Error toggling favorite: $error');
-      _error = '즐겨찾기 설정에 실패했습니다: $error';
-    }
   }
 
   Future<void> searchProducts(String query) async {
@@ -158,9 +150,11 @@ class ProductsProvider with ChangeNotifier {
         imageUrl: json['image_url'] ?? '',
         characteristics: Map<String, double>.from(json['characteristics'] ?? {}),
         isFavorite: json['is_favorite'] ?? false,
+        similarity: json['similarity'] != null 
+            ? (json['similarity'] as num).toDouble() 
+            : null,
       )).toList();
 
-      notifyListeners();
     } catch (error) {
       print('Error searching products: $error');
       _error = '검색에 실패했습니다: $error';
