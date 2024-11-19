@@ -7,6 +7,54 @@ import '../widgets/hexagon_stats_widget.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
+  void _showNicknameDialog(BuildContext context, UserPreferenceProvider provider) {
+    final controller = TextEditingController(text: provider.nickname);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('닉네임 설정'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: '닉네임',
+            hintText: '닉네임을 입력해주세요',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+            filled: true,
+            fillColor: Color(0xFFEFEFEF),
+          ),
+          maxLength: 10,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              '취소',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                provider.updateNickname(controller.text);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text(
+              '저장',
+              style: TextStyle(color: Colors.orange),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,6 +101,14 @@ class ProfileScreen extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).pushNamed('/login');
                         },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                         child: const Text(
                           '로그인하기',
                           style: TextStyle(
@@ -97,17 +153,33 @@ class ProfileScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                authProvider.user?.email ?? "사용자",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    userPrefProvider.nickname ?? 
+                                    authProvider.user?.email?.split('@')[0] ?? 
+                                    "사용자",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      size: 20,
+                                      color: Colors.orange,
+                                    ),
+                                    onPressed: () => _showNicknameDialog(
+                                      context,
+                                      userPrefProvider,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                '나만의 취향을 발견해보세요!',
-                                style: TextStyle(
+                              Text(
+                                authProvider.user?.email ?? "",
+                                style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 14,
                                 ),

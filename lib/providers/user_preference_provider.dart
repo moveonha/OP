@@ -11,6 +11,7 @@ class UserPreferenceProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   Map<String, double> get preferences => _userPreference?.preferences ?? {};
+  String? get nickname => _userPreference?.nickname;
 
   bool get hasTastePreference {
     if (_userPreference == null) return false;
@@ -85,13 +86,47 @@ class UserPreferenceProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
       
-      // 데이터 재로드
       await loadPreferences();
       
     } catch (e) {
       _error = e.toString();
       print('Failed to update preferences: $_error');
       throw Exception('취향 데이터 저장에 실패했습니다');
+    }
+  }
+
+  Future<void> updateNickname(String newNickname) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw Exception('로그인이 필요합니다');
+
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await _supabase
+          .from('users')
+          .update({
+            'nickname': newNickname,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', user.id);
+
+      if (_userPreference != null) {
+        _userPreference = _userPreference!.copyWith(
+          nickname: newNickname,
+          updatedAt: DateTime.now(),
+        );
+      }
+
+      _error = null;
+      notifyListeners();
+      
+      await loadPreferences();
+      
+    } catch (e) {
+      _error = e.toString();
+      print('Failed to update nickname: $_error');
+      throw Exception('닉네임 설정에 실패했습니다');
     }
   }
 

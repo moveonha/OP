@@ -2,12 +2,14 @@ import 'package:flutter/foundation.dart';
 
 class UserPreference with ChangeNotifier {
   final String userId;
+  final String? nickname;
   final Map<String, double> preferences;
   DateTime? createdAt;
   DateTime? updatedAt;
 
   UserPreference({
     required this.userId,
+    this.nickname,
     required this.preferences,
     this.createdAt,
     this.updatedAt,
@@ -18,6 +20,7 @@ class UserPreference with ChangeNotifier {
       final prefsMap = (json['preferences'] as Map).cast<String, dynamic>();
       return UserPreference(
         userId: json['id'] as String,
+        nickname: json['nickname'] as String,
         preferences: prefsMap.map(
           (key, value) => MapEntry(key, (value as num).toDouble()),
         ),
@@ -39,6 +42,7 @@ class UserPreference with ChangeNotifier {
   Map<String, dynamic> toJson() {
     return {
       'id': userId,
+      'nickname': nickname,
       'preferences': preferences,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
@@ -87,12 +91,14 @@ class UserPreference with ChangeNotifier {
 
   UserPreference copyWith({
     String? userId,
+    String? nickname,
     Map<String, double>? preferences,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return UserPreference(
       userId: userId ?? this.userId,
+      nickname: nickname ?? this.nickname,
       preferences: preferences ?? Map<String, double>.from(this.preferences),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
