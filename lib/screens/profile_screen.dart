@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_preference_provider.dart';
+import '../providers/products_provider.dart';
 import '../widgets/hexagon_stats_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -248,6 +249,123 @@ class ProfileScreen extends StatelessWidget {
                             size: 16,
                           ),
                         ),
+                ),
+                const SizedBox(height: 16),
+
+                // 찜한 상품 카드
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Consumer<ProductsProvider>(
+                    builder: (ctx, productsData, _) {
+                      final favoriteProducts = productsData.favoriteItems;
+                      
+                      return favoriteProducts.isEmpty
+                          ? const ListTile(
+                              leading: const Icon(
+                                Icons.favorite_border,
+                                color: Colors.orange,
+                              ),
+                              title: const Text('찜한 상품'),
+                              subtitle: const Text('찜한 상품이 없습니다.'),
+                            )
+                          : Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        '찜한 상품',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${favoriteProducts.length}개',
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    height: 200,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: favoriteProducts.length,
+                                      itemBuilder: (ctx, i) {
+                                        final product = favoriteProducts[i];
+                                        return Container(
+                                          width: 140,
+                                          margin: const EdgeInsets.only(right: 12),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.of(context).pushNamed(
+                                                '/product-detail',
+                                                arguments: {'id': product.id},
+                                              );
+                                            },
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                  height: 140,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    color: const Color(0xFFEFEFEF),
+                                                  ),
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    child: Image.network(
+                                                      product.imageUrl,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder: (context, error, stackTrace) {
+                                                        return Image.network(
+                                                          'https://via.placeholder.com/140x140?text=No+Image',
+                                                          fit: BoxFit.cover,
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  product.title,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  '₩${product.price.toStringAsFixed(0)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 13,
+                                                    color: Colors.orange,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                    },
+                  ),
                 ),
                 const SizedBox(height: 16),
 

@@ -157,7 +157,7 @@ class CustomSearchDelegate extends SearchDelegate {
           onTap: () {
             Navigator.of(context).pushNamed(
               '/product-detail',
-              arguments: product.id,
+              arguments: {'id': product.id},
             );
           },
         );

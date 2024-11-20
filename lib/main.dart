@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:orange_potion_2/screens/product_list_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import './screens/cart_screen.dart';
 import './screens/product_detail_screen.dart';
@@ -140,6 +141,7 @@ class MyApp extends StatelessWidget {
           '/signup': (context) => const SignUpScreen(),
           '/cart': (context) => const CartScreen(),
           '/my-info': (context) => const ProfileScreen(),
+          '/product-list': (context) => const ProductListScreen(),
           '/taste-test': (context) => const TasteTestScreen(),
         },
         onGenerateRoute: (settings) {

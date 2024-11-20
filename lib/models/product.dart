@@ -43,6 +43,7 @@ class Product with ChangeNotifier {
                 'crisp': (json['characteristics']['crisp'] ?? 0).toDouble(),
               })
             : {},
+        similarity: (json['similarity']?? 0).toDouble(),
         isFavorite: json['is_favorite'] ?? false,
       );
   }
@@ -56,6 +57,7 @@ class Product with ChangeNotifier {
       'image_url': imageUrl,
       'characteristics': characteristics,
       'is_favorite': isFavorite,
+      'similarity': similarity,
     };
   }
 }

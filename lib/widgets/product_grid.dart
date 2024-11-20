@@ -42,6 +42,7 @@ class ProductGrid extends StatelessWidget {
               imageUrl: products[i].imageUrl,
               price: products[i].price,
               isFavorite: products[i].isFavorite,
+              similarity: products[i].similarity,
               onFavoriteToggle: () {
                 products[i].toggleFavorite();
               },

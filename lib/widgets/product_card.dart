@@ -42,11 +42,11 @@ class _ProductCardState extends State<ProductCard> {
         },
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
-          height: 280, // 고정 높이 설정
+          height: 280,
           child: Column(
             children: [
               Expanded(
-                flex: 3, // 이미지 영역
+                flex: 3,
                 child: Stack(
                   children: [
                     Container(
@@ -114,6 +114,13 @@ class _ProductCardState extends State<ProductCard> {
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.9),
                             borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -140,7 +147,7 @@ class _ProductCardState extends State<ProductCard> {
                 ),
               ),
               Expanded(
-                flex: 2, // 정보 영역
+                flex: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(

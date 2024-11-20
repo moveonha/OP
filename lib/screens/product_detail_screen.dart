@@ -7,7 +7,7 @@ import '../widgets/hexagon_stats_widget.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String id;
-
+  
   const ProductDetailScreen({
     Key? key,
     required this.id,
@@ -19,6 +19,21 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
+  late Map<String, double> userPreferences;
+
+  @override
+  void initState() {
+    super.initState();
+    // 기본 선호도 초기화
+    userPreferences = {
+      'sweet': 0.5,      // 단맛
+      'sour': 0.3,       // 신맛
+      'bitter': 0.2,     // 쓴맛
+      'turbidity': 0.7,  // 탁도
+      'fragrance': 0.6,  // 향
+      'crisp': 0.8,      // 청량함
+    };
+  }
 
   void _addToCart(BuildContext context, Product product) {
     try {
@@ -107,12 +122,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Consumer<ProductsProvider>(
       builder: (ctx, productsData, child) {
         final product = productsData.findById(widget.id);
-
         return Scaffold(
           backgroundColor: const Color(0xFFEFEFEF),
           body: CustomScrollView(
             slivers: [
-              // 앱바
               SliverAppBar(
                 expandedHeight: MediaQuery.of(context).size.width,
                 pinned: true,
@@ -125,7 +138,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                 ),
               ),
-              // 상품 정보
               SliverToBoxAdapter(
                 child: Container(
                   color: Colors.white,
@@ -133,32 +145,54 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 취향 유사도 표시
                       if (product.similarity != null && product.similarity! > 0)
                         Container(
+                          width: double.infinity,
                           margin: const EdgeInsets.only(bottom: 16),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.orange.shade50,
                             borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.orange.shade200,
+                              width: 1,
+                            ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.favorite,
-                                size: 20,
-                                color: Colors.orange.shade400,
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.favorite,
+                                    size: 24,
+                                    color: Colors.orange.shade400,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '취향 분석',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange.shade700,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(height: 12),
                               Text(
-                                '취향 유사도 ${(product.similarity! * 100).toStringAsFixed(0)}%',
+                                '회원님의 취향과 ${(product.similarity! * 100).toStringAsFixed(0)}% 일치해요',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange.shade900,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '회원님이 선호하는 맛과 특성을 분석한 결과예요',
+                                style: TextStyle(
+                                  fontSize: 14,
                                   color: Colors.orange.shade700,
                                 ),
                               ),
@@ -194,7 +228,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                 ),
               ),
-              // 특성 그래프
               if (product.characteristics.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Container(
@@ -207,17 +240,53 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '맛 특성',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          children: [
+                            const Text(
+                              '맛 특성',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Spacer(),
+                            if (product.similarity != null && product.similarity! > 0)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade50,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle_outline,
+                                      size: 16,
+                                      color: Colors.orange.shade700,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${(product.similarity! * 100).toStringAsFixed(0)}% 일치',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.orange.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 16),
                         Center(
                           child: HexagonStatsWidget(
                             characteristics: product.characteristics,
+                            userPreferences: userPreferences,
                             size: MediaQuery.of(context).size.width * 0.7,
                           ),
                         ),
@@ -241,7 +310,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: SafeArea(
               child: Row(
                 children: [
-                  // 수량 및 가격 정보
                   Expanded(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -305,7 +373,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // 장바구니 담기 버튼
                   ElevatedButton(
                     onPressed: () => _addToCart(context, product),
                     style: ElevatedButton.styleFrom(
