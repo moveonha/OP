@@ -24,7 +24,7 @@ Future<void> main() async {
     url: SupabaseConfig.supabaseUrl,
     anonKey: SupabaseConfig.supabaseAnonKey,
   );
-  
+
   runApp(const MyApp());
 }
 
@@ -38,17 +38,28 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(),
         ),
-        ChangeNotifierProvider(
+        ChangeNotifierProxyProvider<AuthProvider, UserPreferenceProvider>(
           create: (_) => UserPreferenceProvider(),
+          update: (_, auth, userPref) {
+            userPref?.loadPreferences();
+            return userPref ?? UserPreferenceProvider();
+          },
         ),
-        ChangeNotifierProvider(
-          create: (_) => ProductsProvider()..fetchProducts(),
+        ChangeNotifierProxyProvider<UserPreferenceProvider, ProductsProvider>(
+          create: (_) => ProductsProvider(),
+          update: (_, userPref, products) {
+            products?.fetchProducts();
+            return products ?? ProductsProvider();
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => CartProvider(),
         ),
-        ChangeNotifierProvider(
+        ChangeNotifierProxyProvider<UserPreferenceProvider, RecommendationProvider>(
           create: (_) => RecommendationProvider(),
+          update: (_, userPref, recommendations) {
+            return recommendations ?? RecommendationProvider();
+          },
         ),
       ],
       child: MaterialApp(

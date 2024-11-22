@@ -17,10 +17,11 @@ class UserPreference with ChangeNotifier {
 
   factory UserPreference.fromJson(Map<String, dynamic> json) {
     try {
-      final prefsMap = (json['preferences'] as Map).cast<String, dynamic>();
+      // null 안전성 처리 추가
+      final prefsMap = (json['preferences'] as Map?)?.cast<String, dynamic>() ?? {};
       return UserPreference(
-        userId: json['id'] as String,
-        nickname: json['nickname'] as String,
+        userId: json['id']?.toString() ?? '',  // null 처리
+        nickname: json['nickname']?.toString(),  // 이미 optional
         preferences: prefsMap.map(
           (key, value) => MapEntry(key, (value as num).toDouble()),
         ),
@@ -35,7 +36,8 @@ class UserPreference with ChangeNotifier {
       if (kDebugMode) {
         print('Error parsing UserPreference: $e');
       }
-      return UserPreference.createDefault(json['id'] as String);
+      // 기본값으로 생성할 때도 null 처리
+      return UserPreference.createDefault(json['id']?.toString() ?? '');
     }
   }
 

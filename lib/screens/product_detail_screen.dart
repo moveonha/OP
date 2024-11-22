@@ -3,6 +3,7 @@ import 'package:orange_potion_2/models/product.dart';
 import 'package:provider/provider.dart';
 import '../providers/products_provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/user_preference_provider.dart';
 import '../widgets/hexagon_stats_widget.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -19,20 +20,14 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
-  late Map<String, double> userPreferences;
 
   @override
   void initState() {
     super.initState();
-    // 기본 선호도 초기화
-    userPreferences = {
-      'sweet': 0.5,      // 단맛
-      'sour': 0.3,       // 신맛
-      'bitter': 0.2,     // 쓴맛
-      'turbidity': 0.7,  // 탁도
-      'fragrance': 0.6,  // 향
-      'crisp': 0.8,      // 청량함
-    };
+    // 사용자 선호도 데이터 로드
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<UserPreferenceProvider>(context, listen: false).loadPreferences();
+    });
   }
 
   void _addToCart(BuildContext context, Product product) {
@@ -119,8 +114,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProductsProvider>(
-      builder: (ctx, productsData, child) {
+    return Consumer2<ProductsProvider, UserPreferenceProvider>(
+      builder: (ctx, productsData, userPrefProvider, child) {
         final product = productsData.findById(widget.id);
         return Scaffold(
           backgroundColor: const Color(0xFFEFEFEF),
@@ -188,14 +183,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '회원님이 선호하는 맛과 특성을 분석한 결과예요',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.orange.shade700,
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -240,53 +227,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            const Text(
-                              '맛 특성',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            if (product.similarity != null && product.similarity! > 0)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange.shade50,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle_outline,
-                                      size: 16,
-                                      color: Colors.orange.shade700,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${(product.similarity! * 100).toStringAsFixed(0)}% 일치',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.orange.shade700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
+                        const Text(
+                          '맛 특성',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Center(
                           child: HexagonStatsWidget(
                             characteristics: product.characteristics,
-                            userPreferences: userPreferences,
+                            userPreferences: userPrefProvider.preferences,
                             size: MediaQuery.of(context).size.width * 0.7,
                           ),
                         ),
