@@ -7,7 +7,7 @@ final supabase = Supabase.instance.client;
 // Supabase 프로젝트 URL과 anon key
 class SupabaseConfig {
   static const String supabaseUrl = 'https://hrgrgwwkipomuxclipie.supabase.co';
-  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhyZ3Jnd3draXBvbXV4Y2xpcGllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzEzMDQ3NjIsImV4cCI6MjA0Njg4MDc2Mn0.wBPiLaeXf4aa8p5dtSJ5yvbHnTHB-AkVegYXdShg2KQ';
+  static const String supabaseAnonKey = ;
 
   // Supabase 초기화 메서드
   static Future<void> initialize() async {
